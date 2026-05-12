@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX — Галерея</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/gallery.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .nsfw-blur { filter: blur(30px); cursor: pointer; position: relative; }
+        .nsfw-overlay { position: absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); color:#fff; z-index:2; text-align:center; }
+        .nsfw-overlay span { font-size:2rem; }
+        .nsfw-overlay p { font-size:0.85rem; margin:4px 0; }
+        .nsfw-overlay button { padding:8px 20px; background:#ff3366; border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600; margin-top:6px; }
+        .share-btn { background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:4px 10px; border-radius:6px; cursor:pointer; font-size:12px; }
+        .share-btn:hover { border-color:var(--red); color:var(--red); }
+        .upload-info { font-size:11px; color:var(--text-faint); margin-top:4px; }
+    </style>
+</head>
+<body>
+<div class="noise"></div>
+
+<header class="site-header">
+    <div class="header-inner">
+        <a href="index.html" class="logo"><span class="logo-ix">IX</span><span class="logo-full">IZUNAX</span></a>
+        <nav class="nav">
+            <a href="gallery.html" class="nav-link" style="color:#ff3366;">Галерея</a>
+            <a href="chat.html" class="nav-link">💬 Чат</a>
+            <a href="messages.html" class="nav-link">✉ ЛС</a>
+            <a href="profile.html" class="nav-link" id="navProfile" style="display:none">Профиль</a>
+            <a href="login.html" class="nav-link" id="navLogin">Войти</a>
+            <a href="register.html" class="nav-btn" id="navReg">Регистрация</a>
+            <a href="#" class="nav-link" id="navLogout" style="display:none;color:#ff4444;" onclick="doLogout()">Вийти</a>
+        </nav>
+        <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+    </div>
+</header>
+
+<main style="max-width:1200px; margin:80px auto 30px; padding:0 15px;">
+    <h1 style="font-family:'Cinzel',serif; letter-spacing:3px; margin-bottom:15px;">🎨 Галерея</h1>
+    
+    <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+        <input type="text" id="searchInput" placeholder="🔍 Пошук..." style="flex:1; min-width:200px; padding:10px; background:#1a1a1a; border:1px solid #333; border-radius:8px; color:#fff; font-family:'Rajdhani',sans-serif;">
+        <button onclick="filterArts()" style="padding:10px 16px; background:linear-gradient(90deg,#8b00ff,#ff1432); border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600;">🔍</button>
+    </div>
+
+    <button id="uploadBtn" onclick="uploadArt()" style="display:none; margin-bottom:15px; padding:12px 24px; background:linear-gradient(90deg,#8b00ff,#ff1432); border:none; border-radius:10px; color:#fff; cursor:pointer; font-weight:600;">+ Завантажити арт</button>
+
+    <div id="artsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px;"></div>
+</main>
+
+<script type="module">
+import { auth, db, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, increment, serverTimestamp, onAuthStateChanged } from "./firebase-auth.js";
+
+let currentUser = null;
+let allArts = [];
+
+window.doLogout = () => { auth.signOut(); window.location.href = 'login.html'; };
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('navLogin').style.display = 'none';
+        document.getElementById('navReg').style.display = 'none';
+        document.getElementById('navProfile').style.display = '';
+        document.getElementById('navLogout').style.display = '';
+        document.getElementById('uploadBtn').style.display = 'inline-block';
+    }
+    loadArts();
+});
+
+async function loadArts() {
+    const snap = await getDocs(collection(db, 'artworks'));
+    allArts = []; snap.forEach(d => allArts.push({ id: d.id, ...d.data() }));
+    filterArts();
+}
+
+window.filterArts = () => {
+    const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const filtered = q ? allArts.filter(a => (a.title||'').toLowerCase().includes(q) || (a.author||'').toLowerCase().includes(q)) : allArts;
+    const grid = document.getElementById('artsGrid');
+    grid.innerHTML = filtered.map(art => {
+        const isNSFW = art.nsfw === true;
+        return `<div style="background:#0f0f1a; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; position:relative;">
+            <div style="position:relative; ${isNSFW ? 'filter:blur(25px);' : ''}" id="imgWrap_${art.id}">
+                <img src="${art.image}" style="width:100%; aspect-ratio:1; object-fit:cover; cursor:pointer;" onclick="${isNSFW ? '' : `viewArt('${art.id}')`}">
+            </div>
+            ${isNSFW ? `
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); color:#fff; text-align:center; z-index:2;">
+                    <span style="font-size:2rem;">🔞</span>
+                    <p style="font-size:0.8rem; margin:4px 0;">Контент 18+</p>
+                    <p style="font-size:0.7rem; color:#aaa;">Натискаючи, ви погоджуєтесь що вам 18+</p>
+                    <button onclick="unblurNSFW('${art.id}')" style="padding:8px 16px; background:#ff3366; border:none; border-radius:6px; color:#fff; cursor:pointer; font-weight:600; margin-top:6px;">👁 Переглянути</button>
+                </div>
+            ` : ''}
+            <div style="padding:10px 14px;">
+                <div style="font-weight:600;">${art.title} ${isNSFW ? '<span style="color:#ff3366;font-size:10px;">18+</span>' : ''}</div>
+                <div style="color:#ff3366; font-size:12px;">@${art.author}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                    <span style="color:#888; font-size:11px;">♥ ${art.likes||0}</span>
+                    <div>
+                        <button class="share-btn" onclick="shareArt('${art.id}')">🔗</button>
+                        <button onclick="likeArt('${art.id}')" style="background:transparent; border:none; color:#ff3366; cursor:pointer; font-size:14px;">❤</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+};
+
+window.unblurNSFW = (artId) => {
+    document.getElementById('imgWrap_' + artId).style.filter = 'none';
+    const overlay = document.getElementById('imgWrap_' + artId).nextElementSibling;
+    if (overlay) overlay.style.display = 'none';
+};
+
+window.likeArt = async (id) => {
+    await updateDoc(doc(db, 'artworks', id), { likes: increment(1) });
+    const art = allArts.find(a => a.id === id);
+    if (art) art.likes = (art.likes||0) + 1;
+    filterArts();
+};
+
+window.shareArt = (artId) => {
+    const art = allArts.find(a => a.id === artId);
+    if (!art) return;
+    const text = `🎨 ${art.title} by @${art.author} на IZUNAX`;
+    const url = window.location.href;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `<div style="background:#0f0f1a;border:1px solid #ff3366;border-radius:16px;padding:20px;max-width:350px;width:100%;text-align:center;">
+        <h3 style="font-family:'Cinzel',serif;">🔗 Поділитись</h3>
+        <p style="color:#888;font-size:13px;margin:8px 0;">${art.title}</p>
+        <button onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}')" style="display:block;width:100%;padding:10px;margin:4px 0;background:#2AABEE;color:#fff;border:none;border-radius:8px;cursor:pointer;">📱 Telegram</button>
+        <button onclick="window.open('https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}')" style="display:block;width:100%;padding:10px;margin:4px 0;background:#1DA1F2;color:#fff;border:none;border-radius:8px;cursor:pointer;">🐦 Twitter</button>
+        <button onclick="navigator.clipboard.writeText('${url}');alert('✅ Скопійовано!')" style="display:block;width:100%;padding:10px;margin:4px 0;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;">📋 Копіювати</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:8px;background:transparent;border:1px solid #444;color:#888;padding:6px 16px;border-radius:6px;cursor:pointer;">Закрити</button>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+};
+
+window.uploadArt = () => {
+    if (!currentUser) return alert('Увійди!');
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*,video/*';
+    inp.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 50 * 1024 * 1024) return alert('Максимум 50MB');
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            const title = prompt('Назва:');
+            if (!title) return;
+            const isNSFW = confirm('Контент 18+? (NSFW)');
+            await addDoc(collection(db, 'artworks'), {
+                title, image: ev.target.result,
+                author: currentUser.displayName || 'Artist',
+                authorUid: currentUser.uid,
+                desc: '', likes: 0, nsfw: isNSFW,
+                createdAt: serverTimestamp()
+            });
+            loadArts();
+        };
+        reader.readAsDataURL(file);
+    };
+    inp.click();
+};
+
+window.viewArt = (id) => {
+    const art = allArts.find(a => a.id === id);
+    if (!art || art.nsfw) return;
+    window.location.href = `gallery.html#${id}`;
+};
+</script>
+</body>
+</html>

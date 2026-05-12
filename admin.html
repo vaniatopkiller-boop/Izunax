@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX — Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#0a0a0f;--bg2:#0f0f1a;--red:#ff3366;--red-dim:rgba(255,51,102,0.3);--purple:#8b00ff;--text:#e8e0f0;--text-dim:#888;--text-faint:#555;--border:rgba(255,255,255,0.06);--card:rgba(15,15,20,0.9);--input:#1a1a1a;--gold:#ffd700;--green:#00ff66;--blue:#4285F4;--orange:#ff8c00;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;}
+        .header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+        .header-logo{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:900;background:linear-gradient(90deg,var(--red),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .header-nav{display:flex;gap:3px;flex-wrap:wrap;}
+        .header-nav button{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;white-space:nowrap;}
+        .header-nav button:hover,.header-nav button.active{background:rgba(255,51,102,0.1);border-color:var(--red);color:var(--red);}
+        .header-nav .logout-btn{border-color:#ff4444;color:#ff4444;}
+        .main{padding:100px 10px 30px;max-width:100%;margin:0 auto;}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+        .stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;}
+        .stat:active{border-color:var(--red-dim);}
+        .stat-val{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;background:linear-gradient(90deg,var(--red),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .stat-lbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+        .card h3{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'Cinzel',serif;letter-spacing:1px;font-size:0.9rem;margin:0;}
+        table{width:100%;border-collapse:collapse;}
+        th{text-align:left;padding:8px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);background:rgba(255,51,102,0.03);border-bottom:1px solid var(--border);}
+        td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;}
+        .badge{display:inline-block;padding:2px 6px;border-radius:8px;font-size:9px;letter-spacing:0.5px;font-weight:600;}
+        .badge-green{background:rgba(0,255,100,0.1);color:var(--green);}
+        .badge-purple{background:rgba(139,0,255,0.1);color:var(--purple);}
+        .badge-gold{background:rgba(255,215,0,0.1);color:var(--gold);}
+        .badge-blue{background:rgba(66,133,244,0.1);color:var(--blue);}
+        .btn{padding:5px 10px;border-radius:5px;font-weight:600;cursor:pointer;font-family:'Rajdhani',sans-serif;border:none;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;margin:1px;}
+        .btn-primary{background:linear-gradient(90deg,var(--purple),var(--red));color:#fff;}
+        .btn-danger{background:rgba(255,68,68,0.1);border:1px solid #ff4444;color:#ff4444;}
+        .search-box{display:flex;gap:6px;margin-bottom:10px;}
+        .search-box input{flex:1;padding:8px 10px;background:var(--input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;outline:none;}
+        .toggle{position:relative;width:34px;height:18px;display:inline-block;}
+        .toggle input{opacity:0;width:0;height:0;}
+        .toggle-slider{position:absolute;inset:0;background:#1f1f1f;border:1px solid #444;border-radius:18px;cursor:pointer;}
+        .toggle-slider::before{content:'';position:absolute;width:12px;height:12px;left:2px;bottom:2px;background:#888;border-radius:50%;transition:all 0.3s;}
+        .toggle input:checked+.toggle-slider{background:rgba(255,51,102,0.3);border-color:var(--red);}
+        .toggle input:checked+.toggle-slider::before{background:var(--red);transform:translateX(16px);}
+        .toast{position:fixed;bottom:15px;right:10px;padding:10px 16px;border-radius:8px;font-weight:600;z-index:300;font-size:12px;}
+        .toast.success{background:rgba(0,255,100,0.12);border:1px solid rgba(0,255,100,0.3);color:#6f6;}
+        .toast.error{background:rgba(255,68,68,0.12);border:1px solid rgba(255,68,68,0.3);color:#ff6666;}
+        .empty{text-align:center;padding:20px;color:var(--text-faint);}
+        .user-av{width:26px;height:26px;border-radius:50%;background:var(--bg3);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--red);overflow:hidden;vertical-align:middle;margin-right:6px;}
+        .user-av img{width:100%;height:100%;object-fit:cover;}
+        .chart-bar{display:flex;align-items:flex-end;gap:2px;height:80px;padding:0 8px;}
+        .chart-col{flex:1;display:flex;flex-direction:column;align-items:center;}
+        .chart-fill{width:100%;background:linear-gradient(180deg,var(--red),var(--purple));border-radius:2px 2px 0 0;min-height:2px;}
+        .chart-lbl{font-size:8px;color:var(--text-faint);margin-top:2px;}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:15px;}
+        .modal>div{background:var(--card);border:1px solid var(--red-dim);border-radius:14px;padding:18px;max-width:450px;width:100%;max-height:80vh;overflow-y:auto;}
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <span class="header-logo">IZUNAX</span>
+    <nav class="header-nav" id="topNav">
+        <button class="active" data-page="dashboard">📊</button>
+        <button data-page="users">👥</button>
+        <button data-page="arts">🎨</button>
+        <button data-page="comments">💬</button>
+        <button data-page="top">🏆</button>
+        <button data-page="analytics">📈</button>
+        <button data-page="online">🟢</button>
+        <button data-page="events">📅</button>
+        <button data-page="achievements">🏅</button>
+        <button data-page="search">🔍</button>
+        <button data-page="logs">📋</button>
+        <button data-page="export">📥</button>
+        <button onclick="window.location.href='admin-tools.html'">🔧 Інструменти</button>
+        <button class="logout-btn" onclick="doLogout()">🚪</button>
+    </nav>
+</header>
+
+<main class="main" id="mainContent"><div class="empty">Завантаження...</div></main>
+<div id="toastContainer"></div>nderExport(m); break;
+<script type="module">
+import { auth, db, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, query, orderBy, limit, serverTimestamp, onAuthStateChanged } from "./firebase-auth.js";
+
+let currentUser = null;
+let allUsers = [];
+let allArts = [];
+let allComments = [];
+let currentPage = 'dashboard';
+let searchQuery = '';
+const activityLog = [];
+
+// ==================== АВТОРИЗАЦІЯ ====================
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists() || !snap.data().isAdmin) {
+        alert('Доступ заборонено!');
+        window.location.href = 'index.html';
+        return;
+    }
+    await loadAllData();
+    renderPage();
+});
+
+window.doLogout = () => { auth.signOut(); window.location.href = 'login.html'; };
+
+// ==================== ЗАВАНТАЖЕННЯ ====================
+async function loadAllData() {
+    try {
+        const [usersSnap, artsSnap] = await Promise.all([
+            getDocs(collection(db, 'users')),
+            getDocs(query(collection(db, 'artworks'), orderBy('createdAt', 'desc')))
+        ]);
+        allUsers = []; usersSnap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+        allArts = []; artsSnap.forEach(d => allArts.push({ id: d.id, ...d.data() }));
+        
+        allUsers.forEach(user => {
+            const ua = allArts.filter(a => a.authorUid === user.uid);
+            user.artworks = ua.length;
+            user.likes = ua.reduce((s, a) => s + (a.likes || 0), 0);
+        });
+        
+        allComments = [];
+        for (const art of allArts.slice(0, 20)) {
+            try {
+                const cs = await getDocs(collection(db, `artworks/${art.id}/comments`));
+                cs.forEach(d => allComments.push({ id: d.id, artId: art.id, artTitle: art.title, ...d.data() }));
+            } catch(e) {}
+        }
+        log('Дані завантажено');
+    } catch(e) { console.error(e); }
+}
+
+function log(msg) { activityLog.unshift({ msg, time: new Date().toLocaleTimeString() }); if (activityLog.length > 30) activityLog.pop(); }
+function showToast(msg) { const t = document.createElement('div'); t.className = 'toast success'; t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.remove(), 2000); }
+
+// ==================== НАВІГАЦІЯ ====================
+document.getElementById('topNav').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
+        currentPage = e.target.dataset.page;
+        document.querySelectorAll('#topNav button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        searchQuery = '';
+        renderPage();
+    }
+});
+
+function renderPage() {
+    const m = document.getElementById('mainContent');
+    switch(currentPage) {
+        case 'dashboard': renderDashboard(m); break;
+        case 'users': renderUsers(m); break;
+        case 'arts': renderArts(m); break;
+        case 'comments': renderComments(m); break;
+        case 'top': renderTop(m); break;
+        case 'analytics': renderAnalytics(m); break;
+        case 'online': renderOnline(m); break;
+        case 'events': renderEvents(m); break;
+        case 'achievements': renderAchievements(m); break;
+        case 'search': renderSearch(m); break;
+        case 'logs': renderLogs(m); break;
+        case 'export': renderExport(m); break;
+        default: renderDashboard(m);
+    }
+}
+
+// ==================== ДАШБОРД ====================
+function renderDashboard(m) {
+    const today = new Date().toDateString();
+    const todayArts = allArts.filter(a => a.createdAt?.toDate?.()?.toDateString() === today).length;
+    const totalLikes = allArts.reduce((s, a) => s + (a.likes || 0), 0);
+    const days = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const ds = d.toDateString(); days.push({ label: d.toLocaleDateString('uk',{weekday:'short'}), count: allUsers.filter(u => u.createdAt?.toDate?.()?.toDateString() === ds).length }); }
+    const maxC = Math.max(...days.map(d => d.count), 1);
+
+    m.innerHTML = `
+        <div class="stats">
+            <div class="stat" onclick="switchTab('users')"><div class="stat-val">${allUsers.length}</div><div class="stat-lbl">Юзери</div></div>
+            <div class="stat" onclick="switchTab('arts')"><div class="stat-val">${allArts.length}</div><div class="stat-lbl">Арти</div></div>
+            <div class="stat"><div class="stat-val">${totalLikes}</div><div class="stat-lbl">Лайки</div></div>
+            <div class="stat" onclick="switchTab('comments')"><div class="stat-val">${allComments.length}</div><div class="stat-lbl">Комент</div></div>
+            <div class="stat"><div class="stat-val">${allUsers.filter(u=>u.isVerified).length}</div><div class="stat-lbl">Verified</div></div>
+            <div class="stat"><div class="stat-val">${todayArts}</div><div class="stat-lbl">Сьогодні</div></div>
+        </div>
+        <div class="card"><h3>📈 Реєстрації за 7 днів</h3><div class="chart-bar">${days.map(d => `<div class="chart-col"><div class="chart-fill" style="height:${(d.count/maxC)*100}%"></div><div class="chart-lbl">${d.label}</div></div>`).join('')}</div></div>
+        <div class="card"><h3>🕒 Останні дії</h3><table>${activityLog.slice(0,8).map(a => `<tr><td style="font-size:10px;color:var(--text-faint);">${a.time}</td><td>${a.msg}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">—</td></tr>'}</table></div>
+    `;
+}
+
+window.switchTab = (page) => { currentPage = page; document.querySelectorAll('#topNav button').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`#topNav button[data-page="${page}"]`); if (btn) btn.classList.add('active'); renderPage(); };
+
+// ==================== КОРИСТУВАЧІ ====================
+function renderUsers(m) {
+    const f = searchQuery ? allUsers.filter(u => (u.name||'').toLowerCase().includes(searchQuery) || (u.email||'').toLowerCase().includes(searchQuery)) : allUsers;
+    m.innerHTML = `
+        <div class="search-box"><input placeholder="🔍 Пошук..." value="${searchQuery}" oninput="searchQuery=this.value.toLowerCase();renderPage();"><button class="btn btn-primary" onclick="searchQuery='';renderPage();">✕</button></div>
+        <div class="card"><h3>👥 Користувачі (${f.length})</h3><table>${f.map(u => `<tr>
+            <td><span class="user-av">${u.avatar?`<img src="${u.avatar}">`:(u.name||'?')[0]}</span>${u.name||'—'}</td>
+            <td style="font-size:10px;color:var(--text-dim);">${u.email||'—'}</td>
+            <td><span class="badge ${u.isVerified?'badge-green':''}" style="background:${u.isVerified?'':'rgba(255,68,68,0.1)'};color:${u.isVerified?'var(--green)':'#ff4444'};">${u.isVerified?'✓':'✗'}</span></td>
+            <td><label class="toggle"><input type="checkbox" ${u.isVerified?'checked':''} onchange="saveField('${u.uid}','isVerified',this.checked)"><span class="toggle-slider"></span></label></td>
+            <td><label class="toggle"><input type="checkbox" ${u.isAdmin?'checked':''} onchange="saveField('${u.uid}','isAdmin',this.checked)"><span class="toggle-slider"></span></label></td>
+            <td><label class="toggle"><input type="checkbox" ${u.isCreator?'checked':''} onchange="saveField('${u.uid}','isCreator',this.checked)"><span class="toggle-slider"></span></label></td>
+            <td><button class="btn btn-danger" onclick="deleteUserConfirm('${u.uid}')">🗑</button></td>
+        </tr>`).join('')}</table></div>
+    `;
+}
+
+window.saveField = async (uid, field, value) => {
+    await updateDoc(doc(db, 'users', uid), { [field]: value });
+    const u = allUsers.find(x => x.uid === uid); if (u) u[field] = value;
+    log(`Змінено ${field} для ${uid.slice(0,6)}`);
+    showToast('✅ Збережено');
+};
+
+window.deleteUserConfirm = async (uid) => {
+    if (!confirm('Видалити?')) return;
+    await deleteDoc(doc(db, 'users', uid));
+    allUsers = allUsers.filter(u => u.uid !== uid);
+    log(`Видалено ${uid.slice(0,6)}`);
+    showToast('🗑 Видалено');
+    renderPage();
+};
+
+// ==================== АРТИ ====================
+function renderArts(m) {
+    const f = searchQuery ? allArts.filter(a => (a.title||'').toLowerCase().includes(searchQuery) || (a.author||'').toLowerCase().includes(searchQuery)) : allArts;
+    m.innerHTML = `
+        <div class="search-box"><input placeholder="🔍 Пошук артів..." value="${searchQuery}" oninput="searchQuery=this.value.toLowerCase();renderPage();"><button class="btn btn-primary" onclick="searchQuery='';renderPage();">✕</button></div>
+        <div class="card"><h3>🎨 Арти (${f.length})</h3><table>${f.slice().reverse().map(a => `<tr>
+            <td><img src="${a.image}" style="width:30px;height:30px;object-fit:cover;border-radius:3px;" onclick="viewArt('${a.id}')"></td>
+            <td><b onclick="viewArt('${a.id}')">${a.title||'—'}</b></td>
+            <td style="color:var(--red);font-size:11px;">@${a.author}</td>
+            <td>♥${a.likes||0}</td>
+            <td><button class="btn btn-danger" onclick="deleteArtConfirm('${a.id}')">🗑</button></td>
+        </tr>`).join('')}</table></div>
+    `;
+}
+
+window.viewArt = (artId) => {
+    const a = allArts.find(x => x.id === artId); if (!a) return;
+    const d = document.createElement('div'); d.className = 'modal';
+    d.innerHTML = `<div><img src="${a.image}" style="width:100%;max-height:250px;object-fit:contain;border-radius:8px;"><h3>${a.title}</h3><p>@${a.author} · ♥${a.likes||0}</p><p style="color:var(--text-dim);">${a.desc||'—'}</p><button class="btn btn-danger" onclick="deleteArtConfirm('${a.id}')">🗑 Видалити</button> <button class="btn" style="background:var(--bg3);color:var(--text-dim);" onclick="this.closest('.modal').remove()">Закрити</button></div>`;
+    document.body.appendChild(d);
+    d.addEventListener('click', e => { if (e.target === d) d.remove(); });
+};
+
+window.deleteArtConfirm = async (artId) => {
+    if (!confirm('Видалити?')) return;
+    await deleteDoc(doc(db, 'artworks', artId));
+    allArts = allArts.filter(a => a.id !== artId);
+    log('Видалено арт');
+    showToast('🗑 Видалено');
+    renderPage();
+};
+
+// ==================== КОМЕНТАРІ ====================
+function renderComments(m) {
+    m.innerHTML = `
+        <div class="card"><h3>💬 Коментарі (${allComments.length})</h3><table>${allComments.length ? allComments.slice().reverse().map(c => `<tr>
+            <td style="font-size:10px;color:var(--red);">${c.artTitle||'—'}</td>
+            <td>${c.authorName||'—'}</td>
+            <td style="font-size:11px;">${c.text}</td>
+            <td><button class="btn btn-danger" onclick="deleteCommentConfirm('${c.id}','${c.artId}')">🗑</button></td>
+        </tr>`).join('') : '<tr><td colspan="4" class="empty">Немає</td></tr>'}</table></div>
+    `;
+}
+
+window.deleteCommentConfirm = async (cid, artId) => {
+    if (!confirm('Видалити?')) return;
+    await deleteDoc(doc(db, `artworks/${artId}/comments`, cid));
+    allComments = allComments.filter(c => c.id !== cid);
+    showToast('🗑 Видалено');
+    renderPage();
+};
+
+// ==================== ТОП-10 ====================
+function renderTop(m) {
+    const topL = [...allUsers].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,10);
+    const topA = [...allArts].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,10);
+    m.innerHTML = `
+        <div class="card"><h3>🏆 ТОП юзери</h3><table>${topL.map((u,i)=>`<tr><td>#${i+1}</td><td><span class="user-av">${u.avatar?`<img src="${u.avatar}">`:(u.name||'?')[0]}</span>${u.name||'—'}</td><td>♥${u.likes||0}</td></tr>`).join('')}</table></div>
+        <div class="card"><h3>🎨 ТОП арти</h3><table>${topA.map((a,i)=>`<tr><td>#${i+1}</td><td><img src="${a.image}" style="width:24px;height:24px;border-radius:3px;"></td><td>${a.title}</td><td>♥${a.likes||0}</td></tr>`).join('')}</table></div>
+    `;
+}
+// ==================== АНАЛІТИКА ====================
+function renderAnalytics(m) {
+    const days14 = [];
+    for (let i = 13; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.toDateString();
+        days14.push({
+            label: d.toLocaleDateString('uk', { day: 'numeric', month: 'short' }),
+            users: allUsers.filter(u => u.createdAt?.toDate?.()?.toDateString() === ds).length,
+            arts: allArts.filter(a => a.createdAt?.toDate?.()?.toDateString() === ds).length
+        });
+    }
+    const maxV = Math.max(...days14.map(d => Math.max(d.users, d.arts)), 1);
+
+    const hours = [];
+    for (let h = 0; h < 24; h++) {
+        hours.push({
+            label: `${h}`,
+            count: allArts.filter(a => a.createdAt?.toDate?.()?.getHours() === h).length
+        });
+    }
+    const maxH = Math.max(...hours.map(h => h.count), 1);
+
+    m.innerHTML = `
+        <div class="card"><h3>📈 Реєстрації (14 днів)</h3><div class="chart-bar" style="height:100px;">${days14.map(d => `<div class="chart-col"><div class="chart-fill" style="height:${(d.users/maxV)*100}%;background:linear-gradient(180deg,var(--blue),var(--purple));"></div><div class="chart-lbl">${d.label}</div></div>`).join('')}</div></div>
+        <div class="card"><h3>🎨 Арти (14 днів)</h3><div class="chart-bar" style="height:100px;">${days14.map(d => `<div class="chart-col"><div class="chart-fill" style="height:${(d.arts/maxV)*100}%;background:linear-gradient(180deg,var(--orange),var(--red));"></div><div class="chart-lbl">${d.label}</div></div>`).join('')}</div></div>
+        <div class="card"><h3>🕒 По годинах</h3><div class="chart-bar" style="height:80px;">${hours.map(h => `<div class="chart-col"><div class="chart-fill" style="height:${(h.count/maxH)*100}%;"></div><div class="chart-lbl">${h.label}</div></div>`).join('')}</div></div>
+    `;
+}
+
+// ==================== ОНЛАЙН ====================
+function renderOnline(m) {
+    const oneHourAgo = new Date(Date.now() - 3600000);
+    const online = allUsers.filter(u => allArts.some(a => a.authorUid === u.uid && a.createdAt?.toDate?.() > oneHourAgo));
+    const domains = {};
+    allUsers.forEach(u => { const d = u.email?.split('@')[1] || '?'; domains[d] = (domains[d] || 0) + 1; });
+
+    m.innerHTML = `
+        <div class="stats">
+            <div class="stat"><div class="stat-val">${online.length}</div><div class="stat-lbl">Онлайн</div></div>
+            <div class="stat"><div class="stat-val">${Object.keys(domains).length}</div><div class="stat-lbl">Домени</div></div>
+        </div>
+        <div class="card"><h3>🟢 Активні (${online.length})</h3><table>${online.length ? online.slice(0,10).map(u => `<tr><td>🟢</td><td><span class="user-av">${u.avatar?`<img src="${u.avatar}">`:(u.name||'?')[0]}</span>${u.name||'—'}</td><td style="font-size:10px;">${u.email||'—'}</td></tr>`).join('') : '<tr><td colspan="3" class="empty">Немає</td></tr>'}</table></div>
+        <div class="card"><h3>📧 Домени</h3><table>${Object.entries(domains).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([d,c]) => `<tr><td>${d}</td><td>${c}</td></tr>`).join('')}</table></div>
+    `;
+}
+
+// ==================== ІВЕНТИ ====================
+function renderEvents(m) {
+    m.innerHTML = `
+        <button class="btn btn-primary" onclick="createEvent()" style="margin-bottom:8px;">+ Новий івент</button>
+        <div class="card"><h3>📅 Івенти</h3><table id="eventsTable"><tr><td class="empty">Завантаження...</td></tr></table></div>
+    `;
+    loadEvents();
+}
+
+async function loadEvents() {
+    const t = document.getElementById('eventsTable');
+    if (!t) return;
+    const snap = await getDocs(query(collection(db, 'events'), orderBy('createdAt', 'desc')));
+    const events = []; snap.forEach(d => events.push({ id: d.id, ...d.data() }));
+    t.innerHTML = events.length ? events.map(e => `<tr><td><b>${e.title}</b></td><td style="font-size:10px;">${e.desc||'—'}</td><td style="font-size:10px;">${e.deadline?.toDate?.()?.toLocaleDateString()||'—'}</td><td><button class="btn btn-danger" onclick="deleteEventDoc('${e.id}')">🗑</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Немає івентів</td></tr>';
+}
+
+window.createEvent = () => {
+    const t = prompt('Назва:'); if (!t) return;
+    const d = prompt('Опис:') || '';
+    const days = parseInt(prompt('Днів до дедлайну:', '7')) || 7;
+    const dl = new Date(); dl.setDate(dl.getDate() + days);
+    addDoc(collection(db, 'events'), { title: t, desc: d, deadline: dl, createdAt: serverTimestamp() });
+    showToast('✅ Створено');
+    renderPage();
+};
+
+window.deleteEventDoc = async (id) => { if (!confirm('Видалити?')) return; await deleteDoc(doc(db, 'events', id)); showToast('🗑'); renderPage(); };
+
+// ==================== ДОСЯГНЕННЯ ====================
+const ACHS = [
+    { id:'first_art', name:'🎨 Перший арт' },
+    { id:'100_likes', name:'❤ 100 лайків' },
+    { id:'month', name:'📅 Місяць' },
+    { id:'10_arts', name:'🖼 10 артів' },
+    { id:'top3', name:'🏆 ТОП-3' },
+];
+
+function renderAchievements(m) {
+    m.innerHTML = `
+        <button class="btn btn-primary" onclick="awardAch()" style="margin-bottom:8px;">+ Видати</button>
+        <div class="card"><h3>🏅 Досягнення</h3><table id="achTable"><tr><td class="empty">Завантаження...</td></tr></table></div>
+    `;
+    loadAchs();
+}
+
+async function loadAchs() {
+    const t = document.getElementById('achTable');
+    if (!t) return;
+    const snap = await getDocs(query(collection(db, 'achievements'), orderBy('createdAt', 'desc'), limit(50)));
+    const achs = []; snap.forEach(d => achs.push({ id: d.id, ...d.data() }));
+    t.innerHTML = achs.length ? achs.map(a => {
+        const u = allUsers.find(x => x.uid === a.uid);
+        const ach = ACHS.find(x => x.id === a.achievementId);
+        return `<tr><td>${u?.name || a.uid?.slice(0,6)}</td><td>${ach?.name || a.achievementId}</td><td style="font-size:9px;">${a.createdAt?.toDate?.()?.toLocaleDateString()||'—'}</td><td><button class="btn btn-danger" onclick="deleteAch('${a.id}')">🗑</button></td></tr>`;
+    }).join('') : '<tr><td colspan="4" class="empty">Немає</td></tr>';
+}
+
+window.awardAch = () => {
+    const uid = prompt('UID користувача:'); if (!uid) return;
+    const achList = ACHS.map(a => `${a.id} - ${a.name}`).join('\n');
+    const aid = prompt('Досягнення:\n' + achList); if (!aid) return;
+    addDoc(collection(db, 'achievements'), { uid, achievementId: aid, createdAt: serverTimestamp() });
+    showToast('✅ Видано');
+    renderPage();
+};
+
+window.deleteAch = async (id) => { if (!confirm('Видалити?')) return; await deleteDoc(doc(db, 'achievements', id)); showToast('🗑'); renderPage(); };
+
+// ==================== ПОШУК + ГЕО ====================
+async function renderSearch(m) {
+    let geo = { country:'—', city:'—', ip:'—' };
+    try { const r = await fetch('https://ipapi.co/json/'); const d = await r.json(); geo = { country:d.country_name||'—', city:d.city||'—', ip:d.ip||'—' }; } catch(e) {}
+
+    m.innerHTML = `
+        <div class="search-box"><input placeholder="🔍 Глобальний пошук..." id="globalSearch" oninput="doGlobalSearch()"></div>
+        <div id="searchResults"></div>
+        <div class="card"><h3>📍 Сервер</h3><table><tr><td>🌍</td><td>${geo.country}</td></tr><tr><td>🏙</td><td>${geo.city}</td></tr><tr><td>🔢</td><td style="font-size:10px;">${geo.ip}</td></tr></table></div>
+        <div class="card"><h3>🌍 Користувачі за доменами</h3><table id="geoTable"><tr><td class="empty">Завантаження...</td></tr></table></div>
+    `;
+    loadGeoData();
+}
+
+window.doGlobalSearch = () => {
+    const q = (document.getElementById('globalSearch')?.value || '').toLowerCase();
+    const r = document.getElementById('searchResults');
+    if (!r) return;
+    if (!q) { r.innerHTML = ''; return; }
+    const fu = allUsers.filter(u => (u.uid||'').includes(q) || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+    const fa = allArts.filter(a => (a.title||'').toLowerCase().includes(q) || (a.author||'').toLowerCase().includes(q));
+    r.innerHTML = `
+        ${fu.length ? `<div class="card"><h3>👥 (${fu.length})</h3><table>${fu.map(u => `<tr><td>${u.name}</td><td>${u.email}</td></tr>`).join('')}</table></div>` : ''}
+        ${fa.length ? `<div class="card"><h3>🎨 (${fa.length})</h3><table>${fa.map(a => `<tr><td><img src="${a.image}" style="width:24px;height:24px;border-radius:3px;"></td><td>${a.title}</td><td>@${a.author}</td></tr>`).join('')}</table></div>` : ''}
+        ${!fu.length && !fa.length ? '<p class="empty">Нічого</p>' : ''}
+    `;
+};
+
+async function loadGeoData() {
+    const t = document.getElementById('geoTable');
+    if (!t) return;
+    const domains = {};
+    allUsers.forEach(u => { const d = u.email?.split('@')[1] || '?'; domains[d] = (domains[d] || 0) + 1; });
+    const sorted = Object.entries(domains).sort((a,b) => b[1] - a[1]).slice(0, 12);
+    t.innerHTML = sorted.map(([d,c]) => {
+        let flag = '🌍';
+        if (d.endsWith('.ua')) flag = '🇺🇦';
+        else if (d.endsWith('.ru')) flag = '🇷🇺';
+        else if (d.endsWith('.by')) flag = '🇧🇾';
+        else if (d.endsWith('.pl')) flag = '🇵🇱';
+        else if (d.endsWith('.de')) flag = '🇩🇪';
+        else if (d.includes('gmail')) flag = '📧';
+        return `<tr><td>${flag}</td><td>${d}</td><td>${c}</td></tr>`;
+    }).join('');
+}
+
+// ==================== ЛОГИ ====================
+function renderLogs(m) {
+    m.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:700;">📋 Логи (${activityLog.length})</span>
+            <button class="btn btn-danger" onclick="activityLog.length=0;renderPage();">Очистити</button>
+        </div>
+        <div class="card"><table>${activityLog.length ? activityLog.map(a => `<tr><td style="font-size:10px;color:var(--text-faint);">${a.time}</td><td>${a.msg}</td></tr>`).join('') : '<tr><td colspan="2" class="empty">—</td></tr>'}</table></div>
+    `;
+}
+
+// ==================== ЕКСПОРТ ====================
+function renderExport(m) {
+    m.innerHTML = `
+        <div class="card"><h3>📥 Експорт</h3>
+            <div style="padding:15px;display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-primary" onclick="exportCSV('users')">📥 Юзери CSV (${allUsers.length})</button>
+                <button class="btn btn-primary" onclick="exportCSV('arts')">📥 Арти CSV (${allArts.length})</button>
+            </div>
+        </div>
+        <div class="card"><h3>📊 Статистика</h3><table>
+            <tr><td>👥 Юзерів</td><td>${allUsers.length}</td></tr>
+            <tr><td>🎨 Артів</td><td>${allArts.length}</td></tr>
+            <tr><td>💬 Коментарів</td><td>${allComments.length}</td></tr>
+            <tr><td>✓ Verified</td><td>${allUsers.filter(u=>u.isVerified).length}</td></tr>
+            <tr><td>⚡ Admins</td><td>${allUsers.filter(u=>u.isAdmin).length}</td></tr>
+            <tr><td>★ Creators</td><td>${allUsers.filter(u=>u.isCreator).length}</td></tr>
+            <tr><td>❤ Лайків</td><td>${allArts.reduce((s,a)=>s+(a.likes||0),0)}</td></tr>
+        </table></div>
+    `;
+}
+
+window.exportCSV = (type) => {
+    let csv = type === 'users'
+        ? 'Name,Email,UID,Verified,Admin,Creator,Artworks,Likes\n' + allUsers.map(u => `"${u.name||''}","${u.email||''}","${u.uid}","${u.isVerified}","${u.isAdmin}","${u.isCreator}","${u.artworks||0}","${u.likes||0}"`).join('\n')
+        : 'Title,Author,UID,Likes,Date\n' + allArts.map(a => `"${a.title||''}","${a.author||''}","${a.authorUid||''}","${a.likes||0}","${a.createdAt?.toDate?.()?.toISOString()||''}"`).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `izunax_${type}.csv`; a.click();
+    log(`Експорт ${type}`);
+    showToast('📥 Завантажено');
+};
+
+// ==================== INIT ====================
+console.log('⚡ IZUNAX Admin v4 ready');
+</script>
+</body>
+</html>

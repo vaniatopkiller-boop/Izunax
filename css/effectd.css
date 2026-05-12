@@ -1,0 +1,158 @@
+/* ============================================
+   IZUNAX — Effects & Aesthetics
+   Glitch, Glassmorphism, Particles, Scrollbar
+   ============================================ */
+
+/* === GLITCH EFFECT === */
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, -1px); }
+    60% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, -2px); }
+    100% { transform: translate(0); }
+}
+@keyframes glitchClip {
+    0% { clip-path: inset(40% 0 61% 0); }
+    20% { clip-path: inset(92% 0 1% 0); }
+    40% { clip-path: inset(43% 0 1% 0); }
+    60% { clip-path: inset(25% 0 58% 0); }
+    80% { clip-path: inset(54% 0 7% 0); }
+    100% { clip-path: inset(58% 0 43% 0); }
+}
+.glitch-text {
+    position: relative;
+    display: inline-block;
+}
+.glitch-text:hover {
+    animation: glitch 0.3s ease-in-out;
+}
+.glitch-text::before,
+.glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+.glitch-text:hover::before {
+    animation: glitch 0.3s ease-in-out infinite;
+    animation-delay: 0.1s;
+    color: #ff3366;
+    opacity: 0.5;
+    clip-path: inset(0 0 50% 0);
+}
+.glitch-text:hover::after {
+    animation: glitch 0.3s ease-in-out infinite;
+    animation-delay: 0.2s;
+    color: #00ffff;
+    opacity: 0.3;
+    clip-path: inset(50% 0 0 0);
+}
+
+/* === GLASSMORPHISM === */
+.glass {
+    background: rgba(15, 15, 25, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* === NEON GLOW ON HOVER === */
+.neon-hover {
+    transition: all 0.3s ease;
+}
+.neon-hover:hover {
+    box-shadow: 0 0 25px rgba(255, 51, 102, 0.4), 0 0 60px rgba(139, 0, 255, 0.2);
+    border-color: rgba(255, 51, 102, 0.6) !important;
+}
+
+/* === PROGRESSIVE IMAGE LOADING === */
+.img-loading {
+    filter: blur(20px);
+    transition: filter 0.5s ease;
+}
+.img-loaded {
+    filter: blur(0);
+}
+
+/* === PARTICLES BACKGROUND === */
+#particlesCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+/* === CUSTOM SCROLLBAR === */
+::-webkit-scrollbar {
+    width: 5px;
+}
+::-webkit-scrollbar-track {
+    background: #0a0a0f;
+}
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff3366, #8b00ff);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ff0050, #a020f0);
+}
+
+/* === BUTTON CLICK SOUND FEEDBACK === */
+.btn-click {
+    position: relative;
+    overflow: hidden;
+}
+.btn-click::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+.btn-click:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* === LIGHTBOX === */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    backdrop-filter: blur(5px);
+}
+.lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 60px rgba(255, 51, 102, 0.3);
+    animation: zoomIn 0.3s ease;
+}
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* === PREVIEW CARD (для соцмереж) === */
+.seo-preview {
+    display: none;
+}

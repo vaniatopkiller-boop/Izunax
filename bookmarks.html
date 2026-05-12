@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX — Закладки</title>
+   <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff3366">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        :root { --bg:#0a0a0f;--bg2:#0f0f1a;--red:#ff3366;--red-dim:rgba(255,51,102,0.3);--purple:#8b00ff;--text:#e8e0f0;--text-dim:#888;--text-faint:#555;--border:rgba(255,255,255,0.06);--card:rgba(15,15,20,0.9); }
+        .theme-light { --bg:#f5f5f5;--bg2:#fff;--text:#1a1a1a;--text-dim:#666;--text-faint:#999;--border:rgba(0,0,0,0.08);--card:rgba(255,255,255,0.95); }
+        .theme-purple { --bg:#0d001a;--bg2:#15002e;--red:#bb00ff;--red-dim:rgba(187,0,255,0.3);--text:#e8d0ff;--text-dim:#9a7abf;--text-faint:#5a3a7f;--border:rgba(187,0,255,0.1);--card:rgba(21,0,46,0.95); }
+        .theme-green { --bg:#001a0a;--bg2:#002e15;--red:#00ff66;--red-dim:rgba(0,255,102,0.3);--text:#d0ffe0;--text-dim:#7abf9a;--text-faint:#3a7f5a;--border:rgba(0,255,102,0.1);--card:rgba(0,46,21,0.95); }
+        .theme-gold { --bg:#1a1500;--bg2:#2e2500;--red:#ffd700;--red-dim:rgba(255,215,0,0.3);--text:#ffe8a0;--text-dim:#bfa060;--text-faint:#7f6a30;--border:rgba(255,215,0,0.1);--card:rgba(46,37,0,0.95); }
+        .theme-blue { --bg:#000a1a;--bg2:#00152e;--red:#0099ff;--red-dim:rgba(0,153,255,0.3);--text:#d0e8ff;--text-dim:#7ab0bf;--text-faint:#3a607f;--border:rgba(0,153,255,0.1);--card:rgba(0,21,46,0.95); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; transition:all 0.3s; }
+        .header { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(10,10,15,0.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+        .header-inner { max-width:1200px; margin:0 auto; padding:0 20px; height:60px; display:flex; align-items:center; gap:12px; }
+        .logo { text-decoration:none; display:flex; align-items:baseline; gap:4px; }
+        .logo-ix { font-family:'Cinzel',serif; font-size:1.3rem; font-weight:900; color:var(--red); }
+        .logo-full { font-family:'Cinzel',serif; font-size:0.9rem; font-weight:700; color:var(--text-dim); letter-spacing:2px; }
+        .nav { margin-left:auto; display:flex; align-items:center; gap:6px; }
+        .nav a { color:var(--text-dim); text-decoration:none; font-weight:600; letter-spacing:1px; padding:6px 10px; font-size:13px; text-transform:uppercase; }
+        .nav a:hover { color:var(--text); }
+        .main { max-width:1200px; margin:80px auto 40px; padding:0 20px; }
+        .title { font-family:'Cinzel',serif; font-size:1.8rem; letter-spacing:3px; margin-bottom:20px; }
+        .art-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
+        .art-card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; cursor:pointer; transition:all 0.2s; }
+        .art-card:hover { transform:translateY(-4px); border-color:var(--red-dim); }
+        .art-card img { width:100%; aspect-ratio:1; object-fit:cover; }
+        .art-card-body { padding:10px 14px; }
+        .art-card-title { font-weight:600; font-size:14px; }
+        .art-card-author { color:var(--red); font-size:12px; }
+        @media(max-width:600px){ .art-grid{grid-template-columns:repeat(2,1fr);} }
+    </style>
+</head>
+<body>
+<header class="header"><div class="header-inner">
+    <a href="index.html" class="logo"><span class="logo-ix">IX</span><span class="logo-full">IZUNAX</span></a>
+    <nav class="nav">
+        <a href="gallery.html">Галерея</a>
+        <a href="chat.html">💬Чат</a>
+        <a href="messages.html">✉ЛС</a>
+        <a href="bookmarks.html" style="color:var(--red);">⭐Закладки</a>
+        <a href="profile.html" id="navProfile" style="display:none">Профіль</a>
+        <a href="login.html" id="navLogin">Увійти</a>
+        <a href="#" onclick="doLogout()" id="navLogout" style="display:none;color:#ff4444;">Вийти</a>
+    </nav>
+</div></header>
+<main class="main">
+    <h1 class="title">⭐ Мої закладки</h1>
+    <div class="art-grid" id="bookmarksGrid">Завантаження...</div>
+    <p id="emptyMsg" style="display:none;text-align:center;color:var(--text-faint);padding:40px;">Поки немає збережених артів</p>
+</main>
+<script type="module">
+import { auth, db, doc, getDoc, getDocs, collection, onAuthStateChanged } from "./firebase-auth.js";
+const t=localStorage.getItem('izunax_theme')||'dark'; document.body.classList.toggle('theme-light',t==='light'); document.body.classList.toggle('theme-purple',t==='purple'); document.body.classList.toggle('theme-green',t==='green'); document.body.classList.toggle('theme-gold',t==='gold'); document.body.classList.toggle('theme-blue',t==='blue');
+window.doLogout=()=>{auth.signOut();window.location.href='login.html';};
+onAuthStateChanged(auth,async u=>{
+    if(!u){window.location.href='login.html';return;}
+    document.getElementById('navLogin').style.display='none'; document.getElementById('navProfile').style.display=''; document.getElementById('navLogout').style.display='';
+    const s=await getDoc(doc(db,'users',u.uid));
+    const bookmarks=s.exists()?(s.data().bookmarks||[]):[];
+    const grid=document.getElementById('bookmarksGrid');
+    if(!bookmarks.length){grid.innerHTML='';document.getElementById('emptyMsg').style.display='block';return;}
+    const artsSnap=await getDocs(collection(db,'artworks')); const arts=[]; artsSnap.forEach(d=>arts.push({id:d.id,...d.data()}));
+    const saved=arts.filter(a=>bookmarks.includes(a.id));
+    if(!saved.length){grid.innerHTML='';document.getElementById('emptyMsg').style.display='block';return;}
+    document.getElementById('emptyMsg').style.display='none';
+    grid.innerHTML=saved.map(a=>`<div class="art-card" onclick="location.href='gallery.html'"><img src="${a.image}" alt="${a.title}"><div class="art-card-body"><div class="art-card-title">${a.title}</div><span class="art-card-author">@${a.author}</span></div></div>`).join('');
+});
+</script>
+</body>
+</html>

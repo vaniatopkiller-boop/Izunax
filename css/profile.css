@@ -1,0 +1,255 @@
+/* IZUNAX — profile.css */
+
+.profile-main {
+  min-height: 100vh;
+  padding-top: 64px;
+}
+
+/* ── Гость ───────────────────────────────── */
+.profile-guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+  text-align: center;
+  animation: heroIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.guest-icon {
+  font-size: 3rem;
+  color: var(--red);
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+.guest-title {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+.guest-sub {
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+.guest-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Профиль ─────────────────────────────── */
+.profile-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+  animation: heroIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.profile-banner {
+  height: 150px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--bg2) 50%, var(--red-dim) 100%);
+  margin: 0 -1.5rem;
+}
+
+.profile-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  margin-top: -36px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+/* Аватар */
+.avatar-wrap { position: relative; flex-shrink: 0; }
+
+.avatar {
+  width: 84px;
+  height: 84px;
+  background: var(--bg3);
+  border: 3px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--red);
+  overflow: hidden;
+}
+
+.avatar-edit {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  width: 22px; height: 22px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.avatar-edit:hover { background: var(--red-glow); }
+
+/* Инфо */
+.profile-info {
+  flex: 1;
+  padding-top: 2.2rem;
+  min-width: 160px;
+}
+.profile-nick {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+.profile-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.4rem;
+  min-height: 1em;
+}
+.profile-bio {
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+.edit-bio-btn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+.edit-bio-btn:hover { color: var(--red); }
+
+.logout-top-btn {
+  margin-left: auto;
+  margin-top: 2.5rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.logout-top-btn:hover {
+  border-color: var(--red-dim);
+  color: var(--red);
+}
+
+/* Bio editor */
+.bio-editor {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  animation: heroIn 0.3s ease both;
+}
+.bio-textarea {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.7rem 1rem;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.bio-textarea:focus { border-color: var(--red-dim); }
+.bio-actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+/* Статы */
+.profile-stats {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.pstat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem 0.5rem;
+  gap: 0.2rem;
+}
+.pstat-num {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--red);
+}
+.pstat-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+}
+.pstat-div {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Секция артов */
+.profile-section { margin-bottom: 2rem; }
+
+.profile-posts {
+  min-height: 160px;
+}
+
+.no-posts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  border: 1px dashed var(--border);
+  color: var(--text-faint);
+  text-align: center;
+  gap: 0.4rem;
+}
+.no-posts span { font-size: 2rem; opacity: 0.3; }
+.no-posts p { font-size: 0.92rem; }
+.no-posts-sub { font-size: 0.78rem; opacity: 0.6; }
+
+/* ── Адаптив ────────────────────────────── */
+@media (max-width: 600px) {
+  .profile-top { gap: 0.8rem; }
+  .profile-info { padding-top: 1.5rem; }
+  .logout-top-btn { margin-top: 0; margin-left: 0; width: 100%; text-align: center; }
+  .profile-banner { height: 100px; }
+  .avatar { width: 70px; height: 70px; font-size: 1.6rem; }
+  .profile-nick { font-size: 1.2rem; }
+}
