@@ -73,7 +73,7 @@ window.doLogout=()=>{auth.signOut();window.location.href='login.html';};
 onAuthStateChanged(auth,u=>{
     if(!u){window.location.href='login.html';return;}
     currentUser=u; document.getElementById('navLogin').style.display='none'; document.getElementById('navProfile').style.display=''; document.getElementById('navLogout').style.display='';
-    loadMsgs(); setInterval(loadMsgs,3000);
+    loadMsgs(); setInterval(loadMsgs,8000);
 });
 async function loadMsgs(){
     const snap=await getDocs(query(collection(db,'chat_messages'),orderBy('createdAt','asc'),limit(100)));
