@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX — Адмін-інструменти</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#0a0a0f;--bg2:#0f0f1a;--red:#ff3366;--red-dim:rgba(255,51,102,0.3);--purple:#8b00ff;--text:#e8e0f0;--text-dim:#888;--text-faint:#555;--border:rgba(255,255,255,0.06);--card:rgba(15,15,20,0.9);--input:#1a1a1a;--gold:#ffd700;--green:#00ff66;--blue:#4285F4;--orange:#ff8c00;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;}
+        .header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:10px 15px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+        .header-logo{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:900;background:linear-gradient(90deg,var(--red),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .header-nav{display:flex;gap:4px;flex-wrap:wrap;}
+        .header-nav button{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;}
+        .header-nav button:hover,.header-nav button.active{background:rgba(255,51,102,0.1);border-color:var(--red);color:var(--red);}
+        .main{padding:80px 15px 30px;max-width:800px;margin:0 auto;}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+        .card h3{font-family:'Cinzel',serif;letter-spacing:2px;margin-bottom:16px;font-size:1rem;}
+        .input{width:100%;padding:10px;margin:6px 0;background:var(--input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;}
+        .input:focus{border-color:var(--red);}
+        textarea.input{resize:vertical;min-height:70px;}
+        .btn{padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;font-family:'Rajdhani',sans-serif;border:none;font-size:13px;text-transform:uppercase;margin:4px 2px;}
+        .btn-primary{background:linear-gradient(90deg,var(--purple),var(--red));color:#fff;}
+        .btn-danger{background:rgba(255,68,68,0.1);border:1px solid #ff4444;color:#ff4444;}
+        .btn-success{background:rgba(0,255,100,0.1);border:1px solid var(--green);color:var(--green);}
+        .btn-sm{padding:5px 10px;font-size:10px;}
+        .flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+        .color-pick{width:40px;height:40px;border-radius:8px;border:2px solid var(--border);cursor:pointer;padding:2px;}
+        .color-pick.active{border-color:var(--red);box-shadow:0 0 15px var(--red-dim);}
+        .preview{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:10px;text-align:center;}
+        .preview h2{font-family:'Cinzel',serif;font-size:1.5rem;margin:8px 0;}
+        .preview p{color:var(--text-dim);font-size:13px;}
+        .toast{position:fixed;bottom:15px;right:10px;padding:10px 16px;border-radius:8px;font-weight:600;z-index:300;font-size:12px;}
+        .toast.success{background:rgba(0,255,100,0.12);border:1px solid rgba(0,255,100,0.3);color:#6f6;}
+        table{width:100%;border-collapse:collapse;}
+        th{text-align:left;padding:8px;font-size:10px;letter-spacing:1px;color:var(--text-faint);border-bottom:1px solid var(--border);}
+        td{padding:8px;border-bottom:1px solid var(--border);font-size:12px;}
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <span class="header-logo">IZUNAX Tools</span>
+    <nav class="header-nav" id="topNav">
+        <button class="active" data-page="events">📅 Івенти</button>
+        <button data-page="awards">🏅 Нагороди</button>
+        <button data-page="homepage">🎨 Головна</button>
+        <button onclick="window.location.href='admin.html'">👥 Користувачі</button>
+        <button onclick="window.location.href='index.html'">🏠 Сайт</button>
+    </nav>
+</header>
+
+<main class="main" id="mainContent"></main>
+<div id="toastContainer"></div>
+
+<script type="module">
+import { auth, db, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onAuthStateChanged } from "./firebase-auth.js";
+
+let currentUser = null;
+let currentPage = 'events';
+let allUsers = [];
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists() || !snap.data().isAdmin) {
+        alert('Доступ заборонено!');
+        window.location.href = 'index.html';
+        return;
+    }
+    const usersSnap = await getDocs(collection(db, 'users'));
+    allUsers = []; usersSnap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+    renderPage();
+});
+
+function showToast(msg) { const t = document.createElement('div'); t.className = 'toast success'; t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.remove(), 2000); }
+
+document.getElementById('topNav').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
+        currentPage = e.target.dataset.page;
+        document.querySelectorAll('#topNav button[data-page]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        renderPage();
+    }
+});
+
+function renderPage() {
+    const m = document.getElementById('mainContent');
+    switch(currentPage) {
+        case 'events': renderEvents(m); break;
+        case 'awards': renderAwards(m); break;
+        case 'homepage': renderHomepage(m); break;
+    }
+}
+
+// ==================== ІВЕНТИ ====================
+function renderEvents(m) {
+    m.innerHTML = `
+        <div class="card">
+            <h3>📅 Створити івент</h3>
+            <input class="input" id="eventTitle" placeholder="Назва івенту">
+            <textarea class="input" id="eventDesc" placeholder="Опис..."></textarea>
+            <div class="flex">
+                <input class="input" id="eventDays" placeholder="Дедлайн (днів)" value="7" style="width:100px;">
+                <button class="btn btn-primary" onclick="createEvent()">Створити</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>📋 Активні івенти</h3>
+            <div id="eventsList">Завантаження...</div>
+        </div>
+    `;
+    loadEvents();
+}
+
+async function loadEvents() {
+    const el = document.getElementById('eventsList');
+    if (!el) return;
+    const snap = await getDocs(query(collection(db, 'events'), orderBy('createdAt', 'desc')));
+    const events = []; snap.forEach(d => events.push({ id: d.id, ...d.data() }));
+    el.innerHTML = events.length ? events.map(e => `
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+            <b>${e.title}</b>
+            <span style="color:var(--text-dim);font-size:11px;"> — до ${e.deadline?.toDate?.()?.toLocaleDateString()||'—'}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">🗑</button>
+        </div>`).join('') : '<p style="color:var(--text-faint);">Немає івентів</p>';
+}
+
+window.createEvent = async () => {
+    const title = document.getElementById('eventTitle').value.trim();
+    const desc = document.getElementById('eventDesc').value.trim();
+    const days = parseInt(document.getElementById('eventDays').value) || 7;
+    if (!title) return alert('Введи назву');
+    const dl = new Date(); dl.setDate(dl.getDate() + days);
+    await addDoc(collection(db, 'events'), { title, desc, deadline: dl, createdAt: serverTimestamp() });
+    showToast('✅ Івент створено!');
+    renderPage();
+};
+
+window.deleteEvent = async (id) => {
+    if (!confirm('Видалити?')) return;
+    await deleteDoc(doc(db, 'events', id));
+    showToast('🗑 Видалено');
+    renderPage();
+};
+
+// ==================== НАГОРОДИ ====================
+const ACHIEVEMENTS = [
+    { id:'first_art', name:'🎨 Перший арт' },
+    { id:'100_likes', name:'❤ 100 лайків' },
+    { id:'top_artist', name:'🏆 ТОП художник' },
+    { id:'creator', name:'★ Статус Творця' },
+    { id:'veteran', name:'👑 Ветеран' },
+    { id:'legend', name:'💎 Легенда' },
+];
+
+function renderAwards(m) {
+    m.innerHTML = `
+        <div class="card">
+            <h3>🏅 Видати нагороду</h3>
+            <select class="input" id="awardUser">
+                <option value="">Вибери користувача...</option>
+                ${allUsers.map(u => `<option value="${u.uid}">${u.name||'—'} (${u.uid?.slice(0,8)})</option>`).join('')}
+            </select>
+            <select class="input" id="awardType">
+                <option value="">Вибери нагороду...</option>
+                ${ACHIEVEMENTS.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+            </select>
+            <button class="btn btn-primary" onclick="giveAward()">🎖 Видати</button>
+        </div>
+        <div class="card">
+            <h3>📋 Видані нагороди</h3>
+            <div id="awardsList">Завантаження...</div>
+        </div>
+    `;
+    loadAwards();
+}
+
+async function loadAwards() {
+    const el = document.getElementById('awardsList');
+    if (!el) return;
+    const snap = await getDocs(query(collection(db, 'achievements'), orderBy('createdAt', 'desc'), limit(30)));
+    const awards = []; snap.forEach(d => awards.push({ id: d.id, ...d.data() }));
+    el.innerHTML = awards.length ? awards.map(a => {
+        const user = allUsers.find(u => u.uid === a.uid);
+        const ach = ACHIEVEMENTS.find(x => x.id === a.achievementId);
+        return `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+            <b>${user?.name||a.uid?.slice(0,6)}</b> — ${ach?.name||a.achievementId}
+            <span style="color:var(--text-faint);font-size:10px;">${a.createdAt?.toDate?.()?.toLocaleDateString()||''}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteAward('${a.id}')">🗑</button>
+        </div>`;
+    }).join('') : '<p style="color:var(--text-faint);">Немає нагород</p>';
+}
+
+window.giveAward = async () => {
+    const uid = document.getElementById('awardUser').value;
+    const aid = document.getElementById('awardType').value;
+    if (!uid || !aid) return alert('Вибери юзера і нагороду');
+    await addDoc(collection(db, 'achievements'), { uid, achievementId: aid, createdAt: serverTimestamp() });
+    showToast('✅ Видано!');
+    renderPage();
+};
+
+window.deleteAward = async (id) => {
+    if (!confirm('Видалити?')) return;
+    await deleteDoc(doc(db, 'achievements', id));
+    showToast('🗑');
+    renderPage();
+};
+
+// ==================== ГОЛОВНИЙ ЕКРАН ====================
+const COLORS = ['#ff3366','#8b00ff','#ffd700','#00ff66','#0099ff','#ff6600','#ff0099','#00ffff'];
+
+function renderHomepage(m) {
+    const settings = JSON.parse(localStorage.getItem('izunax_homepage') || '{"title":"Твори. Без границь.","subtitle":"Місце для аніме-артів","color":"#ff3366","bgColor":"#0a0a0f","showTop":true,"showFeed":true}');
+    m.innerHTML = `
+        <div class="card">
+            <h3>🎨 Налаштування головного екрана</h3>
+            <label style="font-size:11px;color:var(--text-dim);">Заголовок</label>
+            <input class="input" id="hpTitle" value="${settings.title}">
+            <label style="font-size:11px;color:var(--text-dim);">Підзаголовок</label>
+            <input class="input" id="hpSubtitle" value="${settings.subtitle}">
+            
+            <label style="font-size:11px;color:var(--text-dim);">Колір акценту</label>
+            <div class="flex">${COLORS.map(c => `<div class="color-pick ${settings.color===c?'active':''}" style="background:${c};" onclick="pickColor('${c}')"></div>`).join('')}</div>
+            
+            <label style="font-size:11px;color:var(--text-dim);margin-top:8px;">Колір фону</label>
+            <div class="flex">${['#0a0a0f','#1a1a2e','#0d001a','#001a0a','#1a1500','#000a1a'].map(c => `<div class="color-pick ${settings.bgColor===c?'active':''}" style="background:${c};" onclick="pickBg('${c}')"></div>`).join('')}</div>
+            
+            <div class="flex" style="margin-top:10px;">
+                <label style="font-size:12px;"><input type="checkbox" id="hpShowTop" ${settings.showTop?'checked':''}> 🔥 ТОП автори</label>
+                <label style="font-size:12px;"><input type="checkbox" id="hpShowFeed" ${settings.showFeed?'checked':''}> 📸 Стрічка артів</label>
+            </div>
+            <button class="btn btn-primary" onclick="saveHomepage()">💾 Зберегти</button>
+        </div>
+        <div class="card">
+            <h3>👁 Попередній перегляд</h3>
+            <div class="preview" id="previewBox" style="background:${settings.bgColor};">
+                <h2 style="color:${settings.color};">${settings.title}</h2>
+                <p>${settings.subtitle}</p>
+                ${settings.showTop ? '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;">🔥 ТОП автори</div>' : ''}
+                ${settings.showFeed ? '<div style="margin-top:6px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;">📸 Стрічка артів</div>' : ''}
+            </div>
+        </div>
+    `;
+}
+
+window.pickColor = (c) => {
+    document.querySelectorAll('.color-pick').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+    updatePreview();
+};
+
+window.pickBg = (c) => {
+    document.querySelectorAll('.color-pick').forEach(el => { if(['#0a0a0f','#1a1a2e','#0d001a','#001a0a','#1a1500','#000a1a'].includes(el.style.background)) el.classList.remove('active'); });
+    event.target.classList.add('active');
+    updatePreview();
+};
+
+function updatePreview() {
+    const preview = document.getElementById('previewBox');
+    const title = document.getElementById('hpTitle').value;
+    const subtitle = document.getElementById('hpSubtitle').value;
+    const color = document.querySelector('.color-pick.active')?.style.background || '#ff3366';
+    preview.style.background = document.querySelectorAll('.color-pick')[8]?.style.background || '#0a0a0f';
+    preview.querySelector('h2').textContent = title;
+    preview.querySelector('h2').style.color = color;
+    preview.querySelector('p').textContent = subtitle;
+}
+
+window.saveHomepage = () => {
+    const settings = {
+        title: document.getElementById('hpTitle').value,
+        subtitle: document.getElementById('hpSubtitle').value,
+        color: document.querySelector('.color-pick.active')?.style.background || '#ff3366',
+        bgColor: '#0a0a0f',
+        showTop: document.getElementById('hpShowTop').checked,
+        showFeed: document.getElementById('hpShowFeed').checked
+    };
+    localStorage.setItem('izunax_homepage', JSON.stringify(settings));
+    showToast('✅ Налаштування збережено! Онови головну сторінку.');
+};
+</script>
+</body>
+</html>

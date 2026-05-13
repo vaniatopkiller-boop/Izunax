@@ -12,6 +12,17 @@
 <meta property="og:url" content="https://project-z3cuy.vercel.app">
 <meta name="twitter:card" content="summary_large_image">
 
+<!-- Логотип з glitch -->
+<a href="index.html" class="logo glitch-text" data-text="IZUNAX">
+    <span class="logo-ix">IX</span><span class="logo-full">IZUNAX</span>
+</a>
+
+<!-- Картки з glass ефектом -->
+<div class="art-card glass neon-hover">
+
+<a href="gallery.html" data-i18n="gallery">Галерея</a>
+<span data-i18n="subtitle">Місце для аніме-артів</span>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IZUNAX — art platform</title>
