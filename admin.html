@@ -124,6 +124,10 @@
             background: #8a6eff;
             color: white;
         }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
         .btn-sm {
             padding: 4px 12px;
             font-size: 0.8rem;
@@ -151,6 +155,13 @@
             font-size: 4rem;
             color: #dc2626;
             margin-bottom: 20px;
+        }
+        .admin-badge {
+            background: #8a6eff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 10px;
         }
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -191,9 +202,17 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
         
-        // ========== ВАШ EMAIL ДЛЯ АДМІНКИ ==========
-        // ⚠️ ЗАМІНІТЬ "vaniatopkiller@gmail.com" НА СВІЙ РЕАЛЬНИЙ EMAIL
-        const ADMIN_EMAIL = "vaniatopkiller@gmail.com";
+        // ========== СПИСОК АДМІНІВ ==========
+        // Додайте сюди всі email, які мають доступ до адмін-панелі
+        const ALLOWED_ADMINS = [
+            "vaniatopkiller@gmail.com",        // <- ЗАМІНІТЬ НА ВАШ EMAIL
+            "zxc_angel@izunax.user"        // Спеціальний користувач
+        ];
+        
+        // Функція перевірки, чи є користувач адміном
+        function isAdmin(email) {
+            return ALLOWED_ADMINS.includes(email);
+        }
         
         // ========== ЛОГІКА АДМІНКИ ==========
         let currentUser = null;
@@ -216,12 +235,12 @@
                 return false;
             }
             
-            if (currentUser.email !== ADMIN_EMAIL) {
+            if (!isAdmin(currentUser.email)) {
                 content.innerHTML = `
                     <div class="access-denied">
                         <i class="fas fa-shield-alt"></i>
                         <h2>Доступ заборонено</h2>
-                        <p>Сторінка доступна тільки адміністратору</p>
+                        <p>Ця сторінка доступна тільки адміністраторам</p>
                         <p><small>Ваш email: ${currentUser.email}</small></p>
                         <button class="btn btn-primary" onclick="window.location.href='index.html'">На головну</button>
                     </div>`;
@@ -277,12 +296,13 @@
             
             let html = `<table><thead><tr><th>Аватар</th><th>Ім'я</th><th>Email</th><th>Дата</th><th>Дії</th></tr></thead><tbody>`;
             filtered.forEach(user => {
+                const isUserAdmin = isAdmin(user.email);
                 html += `<tr>
                     <td><img class="user-avatar" src="${user.avatar || 'https://via.placeholder.com/40'}" onerror="this.src='https://via.placeholder.com/40'"></td>
-                    <td>${user.name || "—"}</td>
+                    <td>${user.name || "—"} ${isUserAdmin ? '<span class="admin-badge">Admin</span>' : ''}</td>
                     <td>${user.email || "—"}</td>
                     <td>${user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : "—"}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Видалити</button></td>
+                    <td>${!isUserAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Видалити</button>` : '<span style="color:#888;">Адмін</span>'}</td>
                 </tr>`;
             });
             html += `</tbody></table>`;
@@ -302,12 +322,12 @@
                 html += `<tr>
                     <td>${post.imageUrl ? `<i class="fas fa-image"></i>` : "—"}</td>
                     <td style="max-width:300px; word-break:break-word;">${(post.text || "").substring(0, 50)}</td>
-                    <td>${post.authorName}</td>
+                    <td>${post.authorName}${isAdmin(post.authorEmail) ? ' <span class="admin-badge">Admin</span>' : ''}</td>
                     <td>${post.createdAt ? new Date(post.createdAt.toDate()).toLocaleString() : "—"}</td>
                     <td><button class="btn btn-danger btn-sm" onclick="deletePost('${post.id}')">Видалити</button></td>
                 </tr>`;
             });
-            html += `</tbody></table>`;
+            html += `</tbody> licensierad`;
             if (filtered.length === 0) html = "<p>Постів не знайдено</p>";
             document.getElementById("postsList").innerHTML = html;
         }
@@ -349,12 +369,15 @@
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             const hasAccess = await checkAccess();
-            if(hasAccess && user && user.email === ADMIN_EMAIL) {
+            if(hasAccess && user && isAdmin(user.email)) {
+                // Показуємо яким адміном зайшли
+                const adminBadge = user.email === "zxc_angel@izunax.user" ? "👼 Спеціальний адмін" : "👑 Головний адмін";
+                
                 document.getElementById("adminContent").innerHTML = `
                     <div class="header">
                         <div class="logo"><i class="fas fa-crown"></i> IZUNAX Admin</div>
                         <div>
-                            <span style="margin-right: 15px;">👑 ${user.email}</span>
+                            <span style="margin-right: 15px;">${adminBadge}<br><small>${user.email}</small></span>
                             <button class="btn btn-warning" onclick="logout()">Вийти</button>
                             <a href="index.html" class="btn btn-primary" style="text-decoration:none; margin-left:10px;">На сайт</a>
                         </div>
