@@ -2,29 +2,88 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Про нас - IZUNAX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="lang.js"></script>
     <style>
-        .about-container { max-width: 800px; margin: 0 auto; padding: 30px 20px; }
-        .about-section { background: #121217; padding: 25px; border-radius: 20px; margin-bottom: 25px; }
-        .rules-list { list-style: none; padding-left: 0; }
-        .rules-list li { margin: 15px 0; padding-left: 25px; position: relative; }
-        .rules-list li:before { content: "✓"; position: absolute; left: 0; color: #8a6eff; }
-        .sticky-header { position: sticky; top: 0; background: rgba(10,10,15,0.95); backdrop-filter: blur(12px); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #fff, #a970ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .nav-links { display: flex; gap: 20px; }
-        .nav-links a { color: white; text-decoration: none; }
-        .burger { display: none; background: none; border: none; font-size: 2rem; color: white; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(12,12,18,0.95); display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #2a2a30; z-index: 100; }
-        .bottom-nav a { color: #aaa; text-decoration: none; text-align: center; }
-        .bottom-nav a i { font-size: 1.5rem; display: block; }
-        @media (max-width: 768px) { .nav-links { display: none; } .burger { display: block; } }
+        .about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .about-section {
+            background: #121217;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #2a2a30;
+        }
+        .about-section h1, .about-section h2 {
+            margin-bottom: 15px;
+            color: #a970ff;
+        }
+        .about-section h1 i, .about-section h2 i {
+            margin-right: 10px;
+        }
+        .about-section p {
+            line-height: 1.6;
+            color: #ccc;
+        }
+        .rules-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .rules-list li {
+            margin: 12px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #ddd;
+        }
+        .rules-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #1e1e28;
+            border-radius: 12px;
+        }
+        .contact-item i {
+            width: 30px;
+            color: #a970ff;
+            font-size: 1.2rem;
+        }
+        .contact-item a {
+            color: #a970ff;
+            text-decoration: none;
+        }
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+        .version-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #121217;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .about-container {
+                padding: 20px 15px;
+            }
+            .about-section {
+                padding: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -38,18 +97,23 @@
         </nav>
         <button id="burgerBtn" class="burger">☰</button>
     </header>
-    <div class="mobile-menu" id="mobileMenu" style="display:none; position:fixed; top:70px; left:0; width:100%; background:#0a0a0f; padding:20px; flex-direction:column; gap:15px;">
-        <a href="index.html" style="color:white; text-decoration:none;">Головна</a>
-        <a href="gallery.html" style="color:white; text-decoration:none;">Галерея</a>
-        <a href="chat.html" style="color:white; text-decoration:none;">Чат</a>
-        <a href="profile.html" style="color:white; text-decoration:none;">Профіль</a>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html"><i class="fas fa-home"></i> Головна</a>
+        <a href="gallery.html"><i class="fas fa-images"></i> Галерея</a>
+        <a href="chat.html"><i class="fas fa-comments"></i> Чат</a>
+        <a href="profile.html"><i class="fas fa-user"></i> Профіль</a>
     </div>
+
     <main>
         <div class="about-container">
             <div class="about-section">
                 <h1><i class="fas fa-info-circle"></i> Про платформу IZUNAX</h1>
                 <p>IZUNAX — це простір для авторів, художників та творців. Ми створюємо спільноту, де кожен може ділитися своїми роботами, знаходити однодумців та отримувати підтримку.</p>
+                <br>
+                <p><strong>Наша місія:</strong> дати можливість кожному творцю показати своє мистецтво світу, без цензури та обмежень.</p>
             </div>
+
             <div class="about-section">
                 <h2><i class="fas fa-gavel"></i> Правила спільноти</h2>
                 <ul class="rules-list">
@@ -61,36 +125,73 @@
                     <li>Адміністрація має право видаляти контент без попередження.</li>
                 </ul>
             </div>
+
+            <div class="about-section">
+                <h2><i class="fas fa-star"></i> Можливості платформи</h2>
+                <ul class="rules-list">
+                    <li>Публікація своїх робіт (малюнки, фото, історії)</li>
+                    <li>Спілкування в реальному чаті</li>
+                    <li>Коментування та оцінювання робіт інших авторів</li>
+                    <li>Персональний профіль з аватаром та біографією</li>
+                    <li>Підписка на улюблених авторів</li>
+                    <li>Сповіщення про нові публікації та активність</li>
+                </ul>
+            </div>
+
             <div class="about-section">
                 <h2><i class="fas fa-envelope"></i> Контакти</h2>
-                <p>Email підтримки: <a href="mailto:support@izunax.com" style="color:#8a6eff;">support@izunax.com</a></p>
-                <p>Телеграм-канал: <a href="#" style="color:#8a6eff;">@izunax_official</a></p>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email підтримки: </span>
+                    <a href="mailto:support@izunax.com">support@izunax.com</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fab fa-telegram"></i>
+                    <span>Telegram: </span>
+                    <a href="#">@izunax_official</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fab fa-discord"></i>
+                    <span>Discord: </span>
+                    <a href="#">izunax.com/discord</a>
+                </div>
             </div>
+
             <div class="about-section">
                 <h2><i class="fas fa-crown"></i> Адміністрація</h2>
-                <p>З питань співпраці та скарг звертайтесь до адміністратора через форму на сайті.</p>
+                <p>З питань співпраці, реклами та скарг звертайтесь до адміністратора:</p>
+                <div class="contact-item">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Головний адмін: </span>
+                    <strong>anonymous.cube.cube@gmail.com</strong>
+                </div>
+            </div>
+
+            <div class="version-info">
+                <i class="fas fa-code-branch"></i> IZUNAX v3.0 | © 2026 Всі права захищено
             </div>
         </div>
     </main>
+
     <div class="bottom-nav">
         <a href="index.html"><i class="fas fa-home"></i><span>Головна</span></a>
         <a href="gallery.html"><i class="fas fa-images"></i><span>Галерея</span></a>
         <a href="chat.html"><i class="fas fa-comment-dots"></i><span>Чат</span></a>
         <a href="profile.html"><i class="fas fa-user"></i><span>Профіль</span></a>
     </div>
-    <div style="text-align:center; padding:20px; margin-top:30px; border-top:1px solid #2a2a30;">
-        <a href="about.html" style="color:#8a6eff; text-decoration:none;">📜 Про нас / Правила спільноти</a>
-    </div>
-    <script>
-        document.getElementById("burgerBtn")?.addEventListener("click", () => {
-            const menu = document.getElementById("mobileMenu");
-            if (menu.style.display === "none" || menu.style.display === "") {
-                menu.style.display = "flex";
-            } else {
-                menu.style.display = "none";
-            }
-        });
-    </script>
+
     <script src="script.js"></script>
+    <script>
+        // Бургер-меню
+        const burger = document.getElementById('burgerBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (burger && mobileMenu) {
+            burger.addEventListener('click', () => {
+                const isVisible = mobileMenu.style.display === 'flex';
+                mobileMenu.style.display = isVisible ? 'none' : 'flex';
+                burger.innerHTML = isVisible ? '☰' : '✕';
+            });
+        }
+    </script>
 </body>
 </html>
