@@ -93,6 +93,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
         }
         th, td {
             padding: 12px;
@@ -141,34 +143,6 @@
             width: 250px;
             margin-bottom: 20px;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #121217;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 500px;
-            width: 90%;
-        }
-        .modal-content input, .modal-content textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #1e1e28;
-            border: none;
-            color: white;
-            border-radius: 8px;
-        }
         .access-denied {
             text-align: center;
             padding: 60px 20px;
@@ -181,15 +155,15 @@
         @media (max-width: 768px) {
             body { padding: 10px; }
             .header { flex-direction: column; text-align: center; }
-            th, td { font-size: 0.8rem; }
+            th, td { font-size: 0.75rem; padding: 8px; }
             .stats { grid-template-columns: 1fr; }
+            .search-box { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="adminContent">
-            <!-- Завантаження -->
             <div style="text-align: center; padding: 60px;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
                 <p>Перевірка доступу...</p>
@@ -197,9 +171,31 @@
         </div>
     </div>
 
-    <script src="firebase-config.js"></script>
     <script>
-        // ADMIN_EMAIL має бути визначений у firebase-config.js
+        // ========== КОНФІГУРАЦІЯ FIREBASE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
+            authDomain: "izunax-c1707.firebaseapp.com",
+            projectId: "izunax-c1707",
+            storageBucket: "izunax-c1707.firebasestorage.app",
+            messagingSenderId: "755797664743",
+            appId: "1:755797664743:web:2eaeff896c9df27075d342"
+        };
+        
+        // Ініціалізація Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // ========== ВАШ EMAIL ДЛЯ АДМІНКИ ==========
+        // ⚠️ ЗАМІНІТЬ "vaniatopkiller@gmail.com" НА СВІЙ РЕАЛЬНИЙ EMAIL
+        const ADMIN_EMAIL = "vaniatopkiller@gmail.com";
+        
+        // ========== ЛОГІКА АДМІНКИ ==========
         let currentUser = null;
         let usersData = [];
         let postsData = [];
@@ -211,9 +207,11 @@
                 content.innerHTML = `
                     <div class="access-denied">
                         <i class="fas fa-lock"></i>
-                        <h2>Доступ заборонено</h2>
-                        <p>Увійдіть у свій акаунт Google</p>
-                        <button class="btn btn-primary" onclick="window.location.href='index.html'">На головну</button>
+                        <h2>Потрібен вхід</h2>
+                        <p>Увійдіть через Google, щоб продовжити</p>
+                        <button class="btn btn-primary" onclick="login()"><i class="fab fa-google"></i> Увійти через Google</button>
+                        <br><br>
+                        <a href="index.html" style="color: #8a6eff;">← На головну</a>
                     </div>`;
                 return false;
             }
@@ -222,8 +220,9 @@
                 content.innerHTML = `
                     <div class="access-denied">
                         <i class="fas fa-shield-alt"></i>
-                        <h2>Недостатньо прав</h2>
-                        <p>Ця сторінка доступна тільки адміністратору</p>
+                        <h2>Доступ заборонено</h2>
+                        <p>Сторінка доступна тільки адміністратору</p>
+                        <p><small>Ваш email: ${currentUser.email}</small></p>
                         <button class="btn btn-primary" onclick="window.location.href='index.html'">На головну</button>
                     </div>`;
                 return false;
@@ -231,7 +230,15 @@
             
             return true;
         }
-
+        
+        function login() {
+            auth.signInWithPopup(provider)
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch(e => alert("Помилка: " + e.message));
+        }
+        
         async function loadData() {
             // Завантажуємо користувачів
             const usersSnap = await db.collection("users").get();
@@ -245,7 +252,6 @@
             postsData = [];
             for (const doc of postsSnap.docs) {
                 const post = { id: doc.id, ...doc.data() };
-                // Шукаємо автора
                 const user = usersData.find(u => u.id === post.userId);
                 post.authorName = user?.name || "Невідомий";
                 post.authorEmail = user?.email || "";
@@ -295,7 +301,7 @@
             filtered.forEach(post => {
                 html += `<tr>
                     <td>${post.imageUrl ? `<i class="fas fa-image"></i>` : "—"}</td>
-                    <td style="max-width:300px; overflow:hidden;">${(post.text || "").substring(0, 50)}</td>
+                    <td style="max-width:300px; word-break:break-word;">${(post.text || "").substring(0, 50)}</td>
                     <td>${post.authorName}</td>
                     <td>${post.createdAt ? new Date(post.createdAt.toDate()).toLocaleString() : "—"}</td>
                     <td><button class="btn btn-danger btn-sm" onclick="deletePost('${post.id}')">Видалити</button></td>
@@ -308,12 +314,10 @@
         
         async function deleteUser(userId) {
             if(confirm("Видалити користувача та всі його пости?")) {
-                // Видаляємо пости користувача
                 const userPosts = postsData.filter(p => p.userId === userId);
                 for(const post of userPosts) {
                     await db.collection("posts").doc(post.id).delete();
                 }
-                // Видаляємо користувача
                 await db.collection("users").doc(userId).delete();
                 alert("Користувача видалено");
                 loadData();
@@ -337,7 +341,7 @@
         
         function logout() {
             auth.signOut().then(() => {
-                window.location.href = "index.html";
+                window.location.reload();
             });
         }
         
@@ -345,8 +349,7 @@
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             const hasAccess = await checkAccess();
-            if(hasAccess && user) {
-                // Відображаємо адмін-панель
+            if(hasAccess && user && user.email === ADMIN_EMAIL) {
                 document.getElementById("adminContent").innerHTML = `
                     <div class="header">
                         <div class="logo"><i class="fas fa-crown"></i> IZUNAX Admin</div>
