@@ -1,9 +1,6 @@
 {
-  "name": "izunax-bot",
+  "name": "test-bot",
   "version": "1.0.0",
-  "scripts": {
-    "build": "echo Build completed",
-    "start": "node api/bot.js"
-  },
-  "dependencies": {}
+  "scripts": { "start": "node test-bot.js" },
+  "license": "MIT"
 }
