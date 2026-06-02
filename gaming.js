@@ -1,4 +1,5 @@
-// Инициализация конфигурации Firebase
+// Головний керуючий модуль авторизації, постів та модерації IZUNAX Core
+
 const firebaseConfig = {
     apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
     authDomain: "izunax-c1707.firebaseapp.com",
@@ -14,15 +15,8 @@ const db = firebase.firestore();
 let currentUser = null;
 let currentUserId = null;
 let currentAuthMode = 'login';
-let loadedNewsKeys = new Set();
 
-// Реальные новостные сайты через обходчик CORS
-const rssSources = [
-    "https://itc.ua/feed/",
-    "https://gagadget.com/ru/games/rss/"
-];
-
-const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><circle cx='50' cy='50' r='50' fill='%23251647'/><circle cx='50' cy='40' r='18' fill='%23a855f7'/></svg>";
+const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' width='100' height='100'><circle cx='50' cy='50' r='50' fill='%23251647'/><circle cx='50' cy='40' r='18' fill='%23a855f7'/></svg>";
 
 document.addEventListener("DOMContentLoaded", () => {
     const session = localStorage.getItem("izunax_session");
@@ -31,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
         autoLogin(parsed.email, parsed.pass);
     }
     setupMediaHandler();
-    setupInfiniteNewsScroll();
 });
 
 function setMode(mode) {
@@ -50,21 +43,27 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     if (currentAuthMode === 'reg') {
         const login = document.getElementById('g-login').value.trim();
         const check = await db.collection("game_accounts").where("email", "==", email).get();
-        if (!check.empty) { alert("Данный email уже зарегистрирован."); return; }
+        if (!check.empty) { alert("Даний email вже зареєстрований."); return; }
 
-        const userObj = { login, email, pass, avatar: defaultAvatar, createdAt: new Date() };
+        let role = (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') ? 'admin' : 'user';
+
+        const userObj = { login, email, pass, role, avatar: defaultAvatar, createdAt: new Date() };
         db.collection("game_accounts").add(userObj).then((doc) => authorizeUser(userObj, doc.id));
     } else {
         db.collection("game_accounts").where("email", "==", email).where("pass", "==", pass).get().then((snap) => {
             if (!snap.empty) {
-                authorizeUser(snap.docs[0].data(), snap.docs[0].id);
+                let uData = snap.docs[0].data();
+                if (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
+                    uData.role = 'admin';
+                    db.collection("game_accounts").doc(snap.docs[0].id).update({ role: 'admin' });
+                }
+                authorizeUser(uData, snap.docs[0].id);
             } else {
-                // Прямой хардкод админа, если аккаунт еще не создан в базе данных
-                if (email === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
-                    const adminObj = { login: "ROOT_ADMIN", email, pass, avatar: defaultAvatar };
+                if (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
+                    const adminObj = { login: "ROOT_ADMIN", email, pass, role: "admin", avatar: defaultAvatar, createdAt: new Date() };
                     db.collection("game_accounts").add(adminObj).then(doc => authorizeUser(adminObj, doc.id));
                 } else {
-                    alert("Ошибка аутентификации.");
+                    alert("Помилка автентифікації.");
                 }
             }
         });
@@ -73,7 +72,13 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
 
 function autoLogin(email, pass) {
     db.collection("game_accounts").where("email", "==", email).where("pass", "==", pass).get().then((snap) => {
-        if (!snap.empty) authorizeUser(snap.docs[0].data(), snap.docs[0].id);
+        if (!snap.empty) {
+            let uData = snap.docs[0].data();
+            if (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
+                uData.role = 'admin';
+            }
+            authorizeUser(uData, snap.docs[0].id);
+        }
     });
 }
 
@@ -88,14 +93,16 @@ function authorizeUser(userObj, id) {
     document.getElementById('p-edit-login').value = userObj.login;
     document.getElementById('profile-avatar-img').src = userObj.avatar || defaultAvatar;
     
-    // ПРОВЕРКА НА ТВОЙ GMAIL ДЛЯ ОТКРЫТИЯ АДМИНКИ В МЕНЮ
-    if (userObj.email.toLowerCase() === 'vaniatopkiller@gmail.com') {
+    // ВІДКРИТТЯ ROOT-ПАНЕЛІ ДЛЯ ВЛАСНИКА АККАУНТА GMAIL
+    if (userObj.email.toLowerCase() === 'vaniatopkiller@gmail.com' || userObj.role === 'admin') {
         document.getElementById('btn-tab-admin').style.display = 'block';
         initAdminPanel();
     }
     
     loadInstagramFeed();
-    fetchLiveScrapedNews();
+    if (typeof startNewsScraping === 'function') {
+        startNewsScraping(false);
+    }
 }
 
 function logoutSession() {
@@ -134,7 +141,7 @@ document.getElementById('post-form').addEventListener('submit', (e) => {
     }).then(() => {
         document.getElementById('post-form').reset();
         base64Media = ""; mediaFormat = "none";
-        alert("Пост добавлен в ленту!");
+        alert("Пост додано в стрічку!");
         switchTab('feed');
     });
 });
@@ -184,66 +191,45 @@ document.getElementById('profile-update-form').addEventListener('submit', (e) =>
 
     db.collection("game_accounts").doc(currentUserId).update({ login, avatar: av }).then(() => {
         currentUser.login = login; currentUser.avatar = av;
-        alert("Конфигурация профиля обновлена!");
+        alert("Профіль синхронізовано!");
+        loadInstagramFeed();
     });
 });
 
-// АВТОМАТИЧЕСКИЙ ЖИВОЙ ПАРСЕР НОВОСТЕЙ С РАЗНЫХ САЙТОВ БЕЗ ПОВТОРОВ (ИМПОРТ КАК СВОИ)
-async function fetchLiveScrapedNews() {
-    const container = document.getElementById('itc-view'); if (!container) return;
+// Експорт функції імпорту новин
+window.importNewsToFirebase = function(title, desc, imgUrl) {
+    if (!currentUser) return;
     
-    for (let sourceUrl of rssSources) {
-        try {
-            // Используем прокси allorigins для полного обхода ограничений CORS в реальном времени
-            const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(sourceUrl)}`);
-            const json = await response.json();
-            
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(json.contents, "text/xml");
-            const items = xmlDoc.getElementsByTagName("item");
-
-            for (let item of items) {
-                let title = item.getElementsByTagName("title")[0].textContent;
-                let link = item.getElementsByTagName("link")[0].textContent;
-                let desc = item.getElementsByTagName("description")[0]?.textContent || "Откройте инфо-пакет для детального изучения.";
-                
-                // Очистка HTML тегов из описания стороннего сайта
-                desc = desc.replace(/<[^>]*>/g, '').substring(0, 180);
-
-                if (!loadedNewsKeys.has(link)) {
-                    loadedNewsKeys.add(link);
-
-                    container.innerHTML += `
-                        <div class="insta-post">
-                            <div class="post-author-bar">
-                                <div style="width:10px; height:10px; background:var(--accent-green); border-radius:50%; margin-right:8px; display:inline-block;"></div>
-                                <span class="author-name" style="color:var(--neon-glow);">IZUNAX // AUTOMATIC_BOT</span>
-                            </div>
-                            <div class="post-content-block" style="padding-top:15px;">
-                                <div class="post-main-title" style="font-size:16px; color:#fff;">${title}</div>
-                                <p class="post-desc">${desc}...</p>
-                                <a href="${link}" target="_blank" style="color:var(--neon-glow); font-size:12px; text-decoration:none; display:inline-block; margin-top:10px; font-weight:700;">Читать оригинал на источнике →</a>
-                            </div>
-                        </div>`;
-                }
-            }
-        } catch (err) {
-            console.log("Ошибка обработки шлюза для источника: " + sourceUrl);
-        }
-    }
-}
+    db.collection("hub_posts").add({
+        title: title,
+        text: desc,
+        mediaUrl: imgUrl,
+        mediaType: "image",
+        author: `${currentUser.login} (Імпорт)`,
+        authorAvatar: currentUser.avatar || defaultAvatar,
+        authorEmail: currentUser.email,
+        likes: [],
+        createdAt: new Date()
+    }).then(() => {
+        alert("Новину успішно імпортовано у стрічку Хабу!");
+    }).catch(err => {
+        alert("Помилка імпорту: " + err.message);
+    });
+};
 
 function setupInfiniteNewsScroll() {
     window.addEventListener('scroll', () => {
         if (document.getElementById('itc-view-container').style.display !== 'none') {
             if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 150) {
-                fetchLiveScrapedNews();
+                if (typeof startNewsScraping === 'function') {
+                    startNewsScraping(true);
+                }
             }
         }
     });
 }
 
-// РАБОТА АДМИН-ПАНЕЛИ ДЛЯ ОПЕРАТОРА VANIATOPKILLER
+// ПАНЕЛЬ АДМІНІСТРАТОРА (ROOT_ПАНЕЛЬ)
 function initAdminPanel() {
     db.collection("hub_posts").orderBy("createdAt", "desc").onSnapshot(snap => {
         const list = document.getElementById('admin-posts-list'); if(!list) return;
@@ -260,12 +246,45 @@ function initAdminPanel() {
                 </div>`;
         });
     });
+
+    db.collection("game_accounts").orderBy("createdAt", "desc").onSnapshot(snap => {
+        const list = document.getElementById('admin-users-list'); if(!list) return;
+        list.innerHTML = "";
+        snap.forEach(doc => {
+            const u = doc.data();
+            if (u.email === currentUser.email) return;
+            list.innerHTML += `
+                <div class="admin-list-item">
+                    <div>
+                        <strong style="color: #fff;">${u.login}</strong> <br>
+                        <span style="font-size:11px; color:var(--text-muted);">${u.email} [Роль: ${u.role || 'user'}]</span>
+                    </div>
+                    <div>
+                        <button class="btn-grant" onclick="toggleAdminRole('${doc.id}', '${u.role}')">${u.role === 'admin' ? 'Розжалувати' : 'Зробити адміном'}</button>
+                        <button class="btn-delete" onclick="deleteUserByAdmin('${doc.id}')">БАН</button>
+                    </div>
+                </div>`;
+        });
+    });
 }
 
 function deletePostByAdmin(id) {
-    if(confirm("Удалить этот пост безвозвратно из базы Firestore?")) {
-        db.collection("hub_posts").doc(id).delete().then(() => alert("Пост стерт."));
+    if(confirm("Видалити цей пост безповоротно з бази Firestore?")) {
+        db.collection("hub_posts").doc(id).delete();
     }
+}
+
+function deleteUserByAdmin(id) {
+    if(confirm("Забанити та видалити акаунт цього користувача?")) {
+        db.collection("game_accounts").doc(id).delete();
+    }
+}
+
+function toggleAdminRole(id, currentRole) {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    db.collection("game_accounts").doc(id).update({ role: newRole }).then(() => {
+        alert("Права доступу користувача змінено!");
+    });
 }
 
 function switchTab(id) {
