@@ -3,93 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX | Gaming Hub & Profile</title>
-    <!-- Используем правильные CDN для старой версии SDK, которая у тебя в проекте -->
+    <title>IZUNAX | Gaming</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <style>
-        body { background-color: #0b0c10; color: #c5c6c7; font-family: sans-serif; padding: 20px; }
-        .card { background: #1f2833; border: 1px solid #45f3ff; border-radius: 8px; padding: 20px; max-width: 500px; margin: 0 auto; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #66fcf1; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; background: #0b0c10; border: 1px solid #45f3ff; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        .btn-submit { background: #66fcf1; color: #000; border: none; padding: 12px 20px; width: 100%; font-weight: bold; cursor: pointer; }
-        #error-monitor { margin-top: 20px; padding: 10px; background: #500; color: #fff; border-radius: 4px; display: none; }
+        body { background: #0b0c10; color: #fff; font-family: sans-serif; padding: 20px; }
+        .box { background: #1f2833; padding: 20px; border-radius: 8px; max-width: 400px; margin: 0 auto; border: 1px solid #45f3ff; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #45f3ff; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #66fcf1; color: #000; font-weight: bold; border: none; cursor: pointer; }
+        #log { margin-top: 15px; padding: 10px; background: #ff0055; color: #fff; display: none; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Регистрация игрового профиля</h2>
-    <form id="mega-game-form">
-        <div class="form-group">
-            <label>Логин</label>
-            <input type="text" id="game-login" required>
-        </div>
-        <div class="form-group">
-            <label>Gmail</label>
-            <input type="email" id="game-email" required>
-        </div>
-        <div class="form-group">
-            <label>Пароль</label>
-            <input type="password" id="game-password" required>
-        </div>
-        <div class="form-group">
-            <label>Фракция</label>
-            <select id="game-faction">
-                <option value="Shadow Syndicate">Shadow Syndicate</option>
-                <option value="Cyber Warriors">Cyber Warriors</option>
-            </select>
-        </div>
-        <button type="submit" class="btn-submit">Сохранить в Firebase</button>
+<div class="box">
+    <h2>Регистрация Игрока</h2>
+    <form id="g-form">
+        <input type="text" id="g-login" placeholder="Игровой Логин" required>
+        <input type="email" id="g-email" placeholder="Ваш Gmail" required>
+        <input type="password" id="g-pass" placeholder="Пароль" required>
+        <select id="g-faction">
+            <option value="Shadow Syndicate">Shadow Syndicate</option>
+            <option value="Cyber Warriors">Cyber Warriors</option>
+        </select>
+        <button type="submit">Сохранить данные</button>
     </form>
-
-    <!-- Монитор ошибок -->
-    <div id="error-monitor"></div>
+    <div id="log"></div>
 </div>
 
 <script>
-    // Проверяем, загрузился ли конфиг и база данных
+    // Проверка базы сразу при загрузке
     setTimeout(() => {
-        const monitor = document.getElementById('error-monitor');
+        const logBox = document.getElementById('log');
         if (!window.db) {
-            monitor.style.display = 'block';
-            monitor.innerText = "КРИТИЧЕСКАЯ ОШИБКА: window.db не найден! Проверь, правильно ли подключен firebase-config.js";
+            logBox.style.display = 'block';
+            logBox.innerText = "Ошибка: window.db не найден! Проверь файл firebase-config.js";
         }
-    }, 2000);
+    }, 1500);
 
-    document.getElementById('mega-game-form').addEventListener('submit', function(e) {
+    document.getElementById('g-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const monitor = document.getElementById('error-monitor');
-        monitor.style.display = 'none';
-
-        const login = document.getElementById('game-login').value;
-        const email = document.getElementById('game-email').value;
-        const password = document.getElementById('game-password').value;
-        const faction = document.getElementById('game-faction').value;
+        const logBox = document.getElementById('log');
+        logBox.style.display = 'none';
 
         if (!window.db) {
-            alert("Ошибка: База данных не инициализирована.");
+            alert("База данных недоступна");
             return;
         }
 
-        // Пробуем отправить данные
         window.db.collection("game_accounts").add({
-            game_login: login,
-            gmail: email,
-            password: password,
-            faction: faction,
+            game_login: document.getElementById('g-login').value,
+            gmail: document.getElementById('g-email').value,
+            password: document.getElementById('g-pass').value,
+            faction: document.getElementById('g-faction').value,
             createdAt: new Date()
         })
-        .then((docRef) => {
-            alert('Успех! Данные в базе. ID: ' + docRef.id);
-            location.reload(); // Перезагрузим, чтобы увидеть обновления
+        .then(() => {
+            alert("Данные успешно улетели в Firebase!");
+            document.getElementById('g-form').reset();
         })
-        .catch((error) => {
-            console.error(error);
-            monitor.style.display = 'block';
-            monitor.innerText = "Ошибка Firebase Firestore: " + error.message;
+        .catch((err) => {
+            logBox.style.display = 'block';
+            logBox.innerText = "Ошибка Firebase: " + err.message;
         });
     });
 </script>
