@@ -29,20 +29,21 @@
         }
         .btn-publish:hover { background: #f0f; color: #000; box-shadow: 0 0 20px #f0f; }
         .back-link { display: block; text-align: center; margin-top: 15px; color: #0ff; text-decoration: none; font-size: 14px; }
+        .user-indicator { text-align: center; color: #888; font-size: 12px; margin-bottom: 15px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div class="admin-box">
-    <h1>Панель Публикации</h1>
+    <h1>Создать публикацию</h1>
+    <div class="user-indicator" id="user-display">Авторизация...</div>
     <form id="post-form">
-        <input type="text" id="post-author" placeholder="Твой никнейм (@admin)" value="@admin" required>
-        <input type="text" id="post-title" placeholder="Заголовок новости / поста" required>
-        <textarea id="post-text" rows="5" placeholder="Текст публикации... Поддерживается любой кибер-контент." required></textarea>
+        <input type="text" id="post-title" placeholder="Заголовок новости" required>
+        <textarea id="post-text" rows="5" placeholder="Текст публикации... Каждая запись дает +10 XP" required></textarea>
         
-        <button type="submit" class="btn-publish">Выложить в Ленту Хаба</button>
+        <button type="submit" class="btn-publish">Выгрузить в подсеть</button>
     </form>
-    <a href="gaming.html" class="back-link">← Вернуться в Гейм Хаб</a>
+    <a href="gaming.html" class="back-link">← Вернуться в терминал</a>
 </div>
 
 <script>
@@ -60,24 +61,53 @@
     }
     const localDb = firebase.firestore();
 
+    // Проверка авторизации сессии
+    const user = JSON.parse(localStorage.getItem("izunax_user"));
+    if (!user) {
+        alert("Сбой доступа: Для публикации постов авторизуйте терминал!");
+        window.location.href = "gaming.html";
+    } else {
+        document.getElementById('user-display').innerText = "Оператор: " + user.login;
+    }
+
     document.getElementById('post-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const title = document.getElementById('post-title').value;
+        const text = document.getElementById('post-text').value;
+
         const postData = {
-            author: document.getElementById('post-author').value,
-            title: document.getElementById('post-title').value,
-            text: document.getElementById('post-text').value,
-            createdAt: new Date() // Чтобы сортировать по новизне
+            author: user.login,
+            title: title,
+            text: text,
+            createdAt: new Date()
         };
 
+        // 1. Создаем пост
         localDb.collection("hub_posts").add(postData)
         .then(() => {
-            alert("Пост успешно транслирован в общую ленту!");
-            document.getElementById('post-title').value = "";
-            document.getElementById('post-text').value = "";
+            // 2. Ищем аккаунт автора для начисления опыта
+            return localDb.collection("game_accounts").where("email", "==", user.email).get();
+        })
+        .then((snapshot) => {
+            if (!snapshot.empty) {
+                const doc = snapshot.docs[0];
+                const newXp = (doc.data().xp || 0) + 10;
+                
+                // Обновляем данные сессии
+                user.xp = newXp;
+                localStorage.setItem("izunax_user", JSON.stringify(user));
+                
+                // Обновляем базу данных
+                return localDb.collection("game_accounts").doc(doc.id).update({ xp: newXp });
+            }
+        })
+        .then(() => {
+            alert("Данные ретранслированы! Начислено +10 XP.");
+            window.location.href = "gaming.html";
         })
         .catch((err) => {
-            alert("Ошибка ретрансляции: " + err.message);
+            alert("Критический сбой отправки пакета: " + err.message);
         });
     });
 </script>

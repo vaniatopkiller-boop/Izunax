@@ -1,4 +1,4 @@
-// Голографический движок Игрового Хаба IZUNAX
+// Основной движок авторизации и синхронизации подсети IZUNAX
 
 const firebaseConfig = {
     apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
@@ -16,21 +16,16 @@ const localDb = firebase.firestore();
 
 let currentMode = 'login';
 
-// Исправленная функция переключения Вход / Регистрация
 function setMode(mode) {
     currentMode = mode;
-    
-    // Переключаем неоновую подсветку у кнопок вкладок
     document.getElementById('tab-login').classList.remove('active');
     document.getElementById('tab-reg').classList.remove('active');
     document.getElementById('tab-' + mode).classList.add('active');
     
-    // Находим скрытые контейнеры полей
     const nickGroup = document.getElementById('nick-group');
     const regFields = document.getElementById('reg-fields');
     const submitBtn = document.getElementById('submit-btn');
     
-    // Включаем или выключаем видимость целых блоков
     if (mode === 'reg') {
         nickGroup.style.display = 'block';
         regFields.style.display = 'block';
@@ -42,7 +37,6 @@ function setMode(mode) {
     }
 }
 
-// Проверка существующей сессии игрока при старте
 document.addEventListener("DOMContentLoaded", () => {
     const savedUser = localStorage.getItem("izunax_user");
     if (savedUser) {
@@ -51,10 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadLivePosts();
 });
 
-// Обработка отправки формы терминала
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const email = document.getElementById('g-email').value;
     const pass = document.getElementById('g-pass').value;
 
@@ -74,7 +66,6 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
             return;
         }
 
-        // Запись нового игрока в базу Firebase
         localDb.collection("game_accounts").add({
             login: login,
             email: email,
@@ -82,19 +73,16 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
             faction: faction,
             bio: bio,
             color: color,
+            xp: 0,
             createdAt: new Date()
         })
         .then(() => {
             alert("Регистрация успешна! Подключение к подсети...");
-            const user = { login, email, faction, bio, color };
-            initHub(user);
+            initHub({ login, email, faction, bio, color, xp: 0 });
         })
-        .catch((err) => {
-            alert("Сбой регистрации Firebase: " + err.message);
-        });
+        .catch((err) => alert("Сбой регистрации Firebase: " + err.message));
 
     } else {
-        // Логика авторизации (Вход)
         localDb.collection("game_accounts")
             .where("email", "==", email)
             .where("pass", "==", pass)
@@ -108,26 +96,35 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
                     alert("Сбой авторизации: Неверный адрес связи или ключ доступа.");
                 }
             })
-            .catch((err) => {
-                alert("Ошибка терминала: " + err.message);
-            });
+            .catch((err) => alert("Ошибка терминала: " + err.message));
     }
 });
 
-// Запуск главного интерфейса Хаба
 function initHub(user) {
     localStorage.setItem("izunax_user", JSON.stringify(user));
     document.getElementById('auth-section').style.display = 'none';
     document.getElementById('main-hub').style.display = 'block';
     
-    // Заполняем профиль
     document.getElementById('p-login').innerText = user.login;
     document.getElementById('p-email').innerText = "Связь: " + user.email;
     document.getElementById('p-faction').innerText = "Фракция: " + (user.faction || "Не выбрана");
     document.getElementById('p-bio').innerText = "Статус: " + (user.bio || "Засекречено");
+    
+    // Рассчитываем ранг через модуль дополнений izunax-extras.js
+    const currentXp = user.xp || 0;
+    const rankTitle = typeof calculateRank === 'function' ? calculateRank(currentXp) : "Рядовой Сети";
+    document.getElementById('p-xp').innerText = `РАНГ: ${rankTitle} | ОПЫТ: ${currentXp} XP`;
+
+    const pAvatar = document.getElementById('p-avatar');
+    if(user.color) {
+        pAvatar.style.borderColor = user.color;
+        pAvatar.style.color = user.color;
+        pAvatar.style.boxShadow = `0 0 15px ${user.color}`;
+        document.getElementById('p-card-body').style.borderColor = user.color;
+        pAvatar.innerText = user.login.substring(0, 2).toUpperCase();
+    }
 }
 
-// Подгрузка живой ленты постов
 function loadLivePosts() {
     const feedView = document.getElementById('feed-view');
     if (!feedView) return;
@@ -138,7 +135,7 @@ function loadLivePosts() {
                 <div class="post-card">
                     <div class="post-header"><span>@system</span> <span>Сейчас</span></div>
                     <h3 class="post-title">Лента пуста</h3>
-                    <p class="post-text">Перейдите в панель публикации, чтобы добавить первый пост.</p>
+                    <p class="post-text">Перейдите в профиль и создайте публикацию, чтобы запустить поток данных.</p>
                 </div>`;
             return;
         }
@@ -163,15 +160,12 @@ function loadLivePosts() {
     });
 }
 
-// Внутренние вкладки Хаба
 function switchTab(tabId) {
     document.getElementById('feed-view').style.display = 'none';
     document.getElementById('profile-view').style.display = 'none';
-    
-    document.getElementById(tabId + '-view').style.display = 'block';
+    document.getElementById(tabId + '-view').style.display = (tabId === 'feed') ? 'grid' : 'block';
 
-    document.querySelectorAll('.nav-links .nav-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
-    }
+    document.getElementById('btn-tab-feed').classList.remove('active');
+    document.getElementById('btn-tab-profile').classList.remove('active');
+    document.getElementById('btn-tab-' + tabId).classList.add('active');
 }
