@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX | Gaming Hub</title>
-    <link rel="stylesheet" href="css/style.css" id="theme-link">
+    <title>IZUNAX | Gaming Hub & Profile</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         body {
             background-color: #0b0c10;
@@ -63,6 +65,8 @@
         .card h2 {
             color: #45f3ff;
             margin-top: 0;
+            border-bottom: 1px solid #45f3ff;
+            padding-bottom: 8px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -71,8 +75,9 @@
             display: block;
             margin-bottom: 5px;
             font-size: 14px;
+            color: #66fcf1;
         }
-        .form-group input {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px;
             background: #0b0c10;
@@ -91,33 +96,24 @@
             border-radius: 4px;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(102,252,241,0.4);
+            margin-top: 10px;
         }
         .btn-submit:hover {
             background: #45f3ff;
             box-shadow: 0 0 20px #45f3ff;
         }
-        .video-feed {
-            grid-column: 1 / -1;
-            background: #1f2833;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #66fcf1;
-        }
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+        .profile-view {
+            background: #112233;
+            border: 2px dashed #66fcf1;
+            padding: 15px;
+            border-radius: 6px;
             margin-top: 15px;
         }
-        .video-item {
-            background: #0b0c10;
-            border: 1px solid #1f2833;
-            border-radius: 4px;
-            height: 180px;
+        .stat-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #1f2833;
         }
     </style>
 </head>
@@ -125,89 +121,130 @@
 
 <div class="gaming-container">
     <header>
-        <h1>IZUNAX GAMING</h1>
-        <a href="index.html" class="btn-back">← Вернуться к Художникам</a>
+        <h1>IZUNAX GAMING SYSTEM</h1>
+        <a href="index.html" class="btn-back">← На главную</a>
     </header>
 
     <main class="game-sections">
-        <!-- Левая колонка: Привязка аккаунта (Твой приватный сервер) -->
+        <!-- ЛЕВАЯ ЧАСТЬ: РЕГИСТРАЦИЯ И НАСТРОЙКА -->
         <section class="card">
-            <h2>Привязать игровой аккаунт</h2>
-            <p style="font-size: 12px; color: #ff4d4d;">* Внимание: Данные аккаунта будут храниться на приватных защищенных серверах IZUNAX. Вы несете полную ответственность согласно пользовательскому соглашению.</p>
-            <form id="game-auth-form">
+            <h2>Регистрация и Настройка Профиля</h2>
+            <form id="mega-game-form">
                 <div class="form-group">
-                    <label>Логин от игры / Steam ID</label>
-                    <input type="text" id="game-login" required placeholder="Введите логин">
+                    <label>Игровой Логин / Steam ID</label>
+                    <input type="text" id="game-login" required placeholder="Например, VaniaTopKiller">
                 </div>
                 <div class="form-group">
-                    <label>Пароль от игрового аккаунта</label>
-                    <input type="password" id="game-password" required placeholder="Введите пароль">
+                    <label>Электронная почта (Gmail)</label>
+                    <input type="email" id="game-email" required placeholder="example@gmail.com">
                 </div>
-                <button type="submit" class="btn-submit">Сохранить аккаунт</button>
+                <div class="form-group">
+                    <label>Пароль аккаунта</label>
+                    <input type="password" id="game-password" required placeholder="••••••••">
+                </div>
+
+                <h3 style="color:#66fcf1; margin-top:25px;">Кастомизация Игрока</h3>
+                
+                <div class="form-group">
+                    <label>Игровая Фракция / Клан</label>
+                    <select id="game-faction">
+                        <option value="Shadow Syndicate">Теневой Синдикат (Shadow Syndicate)</option>
+                        <option value="Cyber Warriors">Кибер Воины (Cyber Warriors)</option>
+                        <option value="Chaos Order">Орден Хаоса (Chaos Order)</option>
+                        <option value="走人 IZUNAX Team">Команда IZUNAX Devs</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Основной игровой класс (Роль)</label>
+                    <select id="game-role">
+                        <option value="Carry / Damage Dealer">Штурмовик / Кэрри</option>
+                        <option value="Sniper / Recon">Снайпер / Разведчик</option>
+                        <option value="Support / Tech">Техник / Саппорт</option>
+                        <option value="Infiltrator / Hacker">Хакер / Инфильтратор</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Предпочитаемый цвет интерфейса (Неон)</label>
+                    <input type="color" id="game-color" value="#66fcf1">
+                </div>
+
+                <div class="form-group">
+                    <label>О себе / Игровой статус</label>
+                    <textarea id="game-bio" rows="3" placeholder="Пара слов о твоих скиллах..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Сохранить всё в Облако Google</button>
             </form>
         </section>
 
-        <!-- Правая колонка: Профиль игрока -->
-        <section class="card" id="player-profile">
-            <h2>Ваш игровой профиль</h2>
-            <div id="profile-status">Аккаунт не привязан. Войдите слева, чтобы отобразить статистику игрока.</div>
-        </section>
-
-        <!-- Нижняя секция: Видосы игрового сообщества -->
-        <section class="video-feed">
-            <h2>Игровые клипы и видосы</h2>
-            <div class="video-grid">
-                <div class="video-item">Тут будет плеер для видео</div>
-                <div class="video-item">Тут будет плеер для видео</div>
-                <div class="video-item">Тут будет плеер для видео</div>
+        <!-- ПРАВАЯ ЧАСТЬ: ДИНАМИЧЕСКИЙ ПРОФИЛЬ -->
+        <section class="card">
+            <h2>Ваша Игровая Карта Живьем</h2>
+            <div id="profile-status">Введите данные слева и нажмите кнопку для генерации профиля.</div>
+            
+            <div id="live-profile" class="profile-view" style="display: none;">
+                <h3 id="view-login" style="margin-top:0; color:#fff;"></h3>
+                <div class="stat-row"><span>Gmail:</span> <span id="view-email" style="color:#66fcf1;"></span></div>
+                <div class="stat-row"><span>Фракция:</span> <span id="view-faction"></span></div>
+                <div class="stat-row"><span>Роль в бою:</span> <span id="view-role"></span></div>
+                <div class="stat-row"><span>Цветовой код:</span> <span id="view-color"></span></div>
+                <div style="margin-top:15px;">
+                    <strong style="font-size:12px; color:#66fcf1;">БИОГРАФИЯ:</strong>
+                    <p id="view-bio" style="font-style:italic; margin-top:5px; font-size:14px;"></p>
+                </div>
             </div>
         </section>
     </main>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-<script src="firebase-config.js"></script>
-
 <script>
-    document.getElementById('game-auth-form').addEventListener('submit', function(e) {
+    document.getElementById('mega-game-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const gameLogin = document.getElementById('game-login').value;
-        const gamePassword = document.getElementById('game-password').value;
+        const login = document.getElementById('game-login').value;
+        const email = document.getElementById('game-email').value;
+        const password = document.getElementById('game-password').value;
+        const faction = document.getElementById('game-faction').value;
+        const role = document.getElementById('game-role').value;
+        const color = document.getElementById('game-color').value;
+        const bio = document.getElementById('game-bio').value;
 
-        // Временное имя пользователя (потом свяжем с авторизацией IZUNAX)
-        const currentUsername = "Anonymous_Gamer"; 
-
-        // Отправляем данные в твою коллекцию "game_accounts" в Firestore
         window.db.collection("game_accounts").add({
-            username: currentUsername,
-            game_login: gameLogin,
-            game_password: gamePassword, // Сохраняется в твою базу данных Google
+            game_login: login,
+            gmail: email,
+            password: password, 
+            customization: {
+                faction: faction,
+                role: role,
+                neon_color: color,
+                bio: bio
+            },
             createdAt: new Date()
         })
         .then((docRef) => {
-            console.log("Данные успешно сохранены! ID документа: ", docRef.id);
-            alert('Аккаунт успешно привязан к серверам Google!');
+            alert('Супер! Все настройки сохранены в Firebase.');
             
-            // Обновляем статус на странице
-            document.getElementById('profile-status').innerHTML = `
-                <strong style="color: #66fcf1;">Статус:</strong> Подключено успешно!<br>
-                <strong style="color: #66fcf1;">Логин в игре:</strong> ${gameLogin}
-            `;
-            
-            // Очищаем форму
-            document.getElementById('game-auth-form').reset();
+            document.getElementById('profile-status').style.display = 'none';
+            const profileDiv = document.getElementById('live-profile');
+            profileDiv.style.display = 'block';
+            profileDiv.style.borderColor = color;
+
+            document.getElementById('view-login').innerText = "🎮 " + login;
+            document.getElementById('view-email').innerText = email;
+            document.getElementById('view-faction').innerText = faction;
+            document.getElementById('view-role').innerText = role;
+            document.getElementById('view-color').innerText = color;
+            document.getElementById('view-color').style.color = color;
+            document.getElementById('view-bio').innerText = bio || "Не указано";
         })
         .catch((error) => {
-            console.error("Ошибка при добавлении в Firestore: ", error);
-            alert('Ошибка при сохранении данных: ' + error.message);
+            console.error("Ошибка записи: ", error);
+            alert("Ошибка Firebase! Проверьте вкладку Rules в консоли. Текст ошибки: " + error.message);
         });
     });
 </script>
 
-
 </body>
 </html>
-
