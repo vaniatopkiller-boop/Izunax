@@ -37,7 +37,7 @@
             opacity: 0.35; pointer-events: none;
         }
 
-        /* --- АВТОРIЗАЦИЯ --- */
+        /* --- АВТОРИЗАЦИЯ --- */
         #auth-section {
             display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
         }
@@ -142,13 +142,13 @@
         .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
         .admin-action-btn { padding: 4px 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 11px; margin-left: 4px;}
         .btn-delete { background: var(--accent-red); color: white; }
-        .btn-role { background: var(--neon-purple); color: white; }
     </style>
 </head>
 <body>
 
 <canvas id="fluid-canvas"></canvas>
 
+<!-- ЭКРАН ВХОДА -->
 <div id="auth-section">
     <div class="auth-card">
         <div class="brand-badge">IZUNAX ENGINE</div>
@@ -188,6 +188,7 @@
     </div>
 </div>
 
+<!-- ГЛАВНАЯ СИСТЕМА -->
 <div id="main-hub">
     <nav class="hub-nav">
         <h2 class="nav-logo">IZUNAX // CORE</h2>
@@ -200,18 +201,21 @@
     
     <div class="hub-container">
         
+        <!-- ВКЛАДКА ПОЛЬЗОВАТЕЛЬСКОЙ ЛЕНТЫ -->
         <div id="feed-view-container">
             <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// ИГРОВАЯ МЕДИАЛЕНТА</h3>
             <div id="feed-view" class="feed-list"></div>
         </div>
         
+        <!-- ВКЛАДКА БЕСКОНЕЧНЫХ РЕАЛЬНЫХ НОВОСТЕЙ -->
         <div id="itc-view-container" style="display: none;">
             <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// МИРОВЫЕ ЖИВЫЕ НОВОСТИ (БЕЗ ПОВТОРОВ)</h3>
             <div id="itc-view" class="feed-list"></div>
-            <div id="news-loader" style="text-align:center; padding:15px; color:var(--neon-glow); font-size:12px;">⚡ Синхронизация новых пакетов данных...</div>
+            <div id="news-loader" style="text-align:center; padding:15px; color:var(--neon-glow); font-size:12px;">⚡ Поток синхронизирован успешно</div>
         </div>
         
-        <div id="profile-view" style="display: none;">
+        <!-- ВКЛАДКА ПРОФИЛЯ (НАСТРОЙКИ + СОЗДАНИЕ ПОСТОВ) -->
+        <div id="profile-view-container" style="display: none;">
             <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// ПАНЕЛЬ ОПЕРАТОРА</h3>
             
             <div class="profile-wrapper">
@@ -237,6 +241,7 @@
                     <button type="submit" class="btn-main" style="padding:10px; font-size:13px;">Сохранить конфигурацию</button>
                 </form>
 
+                <!-- СОЗДАНИЕ ПОСТА ВНУТРИ ПРОФИЛЯ -->
                 <div class="publish-box">
                     <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--neon-glow);">НОВАЯ ПУБЛИКАЦИЯ В ЛЕНТУ</h4>
                     <form id="post-form">
@@ -260,6 +265,7 @@
                 <button onclick="logoutSession();" class="btn-main" style="background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); margin-top: 20px; box-shadow: none; padding: 10px; font-size: 13px;">Выйти из терминала</button>
             </div>
 
+            <!-- СКРЫТАЯ АДМИНКА -->
             <div id="admin-panel" class="admin-box" style="display:none;">
                 <div style="color:#f87171; font-weight:800; font-size:13px; margin-bottom:10px; letter-spacing:1px;">🔒 МОДЕРАЦИЯ СЕРВЕРА ЯДРА</div>
                 <div id="admin-posts-list" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 8px;"></div>
