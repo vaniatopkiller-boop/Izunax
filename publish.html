@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX | Создать Пост</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        body { 
+            background: #05050a; color: #c5c6c7; font-family: 'Courier New', monospace; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
+        }
+        .admin-box {
+            background: #0f111a; border: 1px solid #f0f; padding: 30px; width: 100%; max-width: 500px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+        }
+        h1 { text-align: center; color: #f0f; text-shadow: 0 0 10px #f0f; text-transform: uppercase; margin-top: 0; }
+        input, textarea { 
+            width: 100%; padding: 12px; background: #000; color: #fff; 
+            border: 1px solid #1a1e2d; margin-bottom: 15px; box-sizing: border-box; font-family: inherit;
+        }
+        input:focus, textarea:focus { border-color: #f0f; outline: none; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
+        .btn-publish {
+            width: 100%; padding: 14px; background: transparent; border: 2px solid #f0f;
+            color: #f0f; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit;
+        }
+        .btn-publish:hover { background: #f0f; color: #000; box-shadow: 0 0 20px #f0f; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #0ff; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+    <h1>Панель Публикации</h1>
+    <form id="post-form">
+        <input type="text" id="post-author" placeholder="Твой никнейм (@admin)" value="@admin" required>
+        <input type="text" id="post-title" placeholder="Заголовок новости / поста" required>
+        <textarea id="post-text" rows="5" placeholder="Текст публикации... Поддерживается любой кибер-контент." required></textarea>
+        
+        <button type="submit" class="btn-publish">Выложить в Ленту Хаба</button>
+    </form>
+    <a href="gaming.html" class="back-link">← Вернуться в Гейм Хаб</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
+        authDomain: "izunax-c1707.firebaseapp.com",
+        projectId: "izunax-c1707",
+        storageBucket: "izunax-c1707.firebasestorage.app",
+        messagingSenderId: "755797664743",
+        appId: "1:755797664743:web:2eaeff896c9df27075d342"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const localDb = firebase.firestore();
+
+    document.getElementById('post-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const postData = {
+            author: document.getElementById('post-author').value,
+            title: document.getElementById('post-title').value,
+            text: document.getElementById('post-text').value,
+            createdAt: new Date() // Чтобы сортировать по новизне
+        };
+
+        localDb.collection("hub_posts").add(postData)
+        .then(() => {
+            alert("Пост успешно транслирован в общую ленту!");
+            document.getElementById('post-title').value = "";
+            document.getElementById('post-text').value = "";
+        })
+        .catch((err) => {
+            alert("Ошибка ретрансляции: " + err.message);
+        });
+    });
+</script>
+
+</body>
+</html>

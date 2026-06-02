@@ -9,11 +9,60 @@ const firebaseConfig = {
     appId: "1:755797664743:web:2eaeff896c9df27075d342"
 };
 
-// Инициализация базы данных
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const localDb = firebase.firestore();
+
+// --- ЖИВАЯ ЛЕНТА ПОСТОВ ИЗ FIREBASE ---
+function loadLivePosts() {
+    const feedView = document.getElementById('feed-view');
+    
+    // Подключаемся к коллекции hub_posts и слушаем обновления в реальном времени (.onSnapshot)
+    localDb.collection("hub_posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        // Если в базе еще нет постов, оставляем системное уведомление
+        if (snapshot.empty) {
+            feedView.innerHTML = `
+                <div class="post-card">
+                    <div class="post-header"><span>@system</span> <span>Сейчас</span></div>
+                    <h3 class="post-title">Лента пуста</h3>
+                    <p class="post-text">Перейдите в панель публикации publish.html, чтобы добавить первый пост.</p>
+                </div>`;
+            return;
+        }
+
+        // Очищаем ленту перед выводом свежих данных
+        feedView.innerHTML = "";
+
+        snapshot.forEach((doc) => {
+            const post = doc.data();
+            
+            // Красиво форматируем дату, если она есть
+            let postTime = "Только что";
+            if (post.createdAt) {
+                const date = post.createdAt.toDate();
+                postTime = date.toLocaleDateString() + " " + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            // Создаем HTML структуру карточки поста
+            const postHTML = `
+                <div class="post-card">
+                    <div class="post-header"><span>${post.author}</span> <span>${postTime}</span></div>
+                    <h3 class="post-title">${post.title}</h3>
+                    <p class="post-text">${post.text}</p>
+                </div>
+            `;
+            feedView.innerHTML += postHTML;
+        });
+    }, (error) => {
+        console.error("Ошибка загрузки постов: ", error);
+    });
+}
+
+// Запускаем загрузку постов сразу при чтении скрипта
+document.addEventListener("DOMContentLoaded", () => {
+    loadLivePosts();
+});
 
 // Логика переключения вкладок Кибер-Хаба
 function switchTab(tabId) {
@@ -21,23 +70,20 @@ function switchTab(tabId) {
     document.getElementById('videos-view').style.display = 'none';
     document.getElementById('profile-view').style.display = 'none';
     
-    // Переключаем активную вкладку в сетку (grid) или блок (block)
     const activeView = document.getElementById(tabId + '-view');
     if (activeView) {
         activeView.style.display = (tabId === 'feed' || tabId === 'videos') ? 'grid' : 'block';
     }
 
-    // Свечение активной кнопки меню
     document.querySelectorAll('.nav-links .nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    // Добавляем класс, если кликнули по кнопкам Лента/Архивы
     if(event && event.target) {
         event.target.classList.add('active');
     }
 }
 
-// Перехват отправки формы и запись в Firestore
+// Перехват отправки формы регистрации
 document.getElementById('gamer-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -51,20 +97,16 @@ document.getElementById('gamer-form').addEventListener('submit', function(e) {
         createdAt: new Date()
     };
 
-    // Запись в облако
     localDb.collection("game_accounts").add(data)
     .then(() => {
-        // Плавный переход: скрываем терминал авторизации, запускаем Хаб
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('main-hub').style.display = 'block';
         
-        // Разворачиваем карточку профиля юзера
         document.getElementById('p-login').innerText = data.login;
         document.getElementById('p-email').innerText = data.email;
         document.getElementById('p-faction').innerText = data.faction;
         document.getElementById('p-bio').innerText = data.bio;
         
-        // Активируем кастомную неоновую подсветку, которую выбрал игрок
         const pAvatar = document.getElementById('p-avatar');
         pAvatar.style.borderColor = data.color;
         pAvatar.style.color = data.color;
