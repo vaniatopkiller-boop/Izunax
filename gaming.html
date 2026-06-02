@@ -3,41 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX | Gaming Hub</title>
+    <title>IZUNAX | Gaming Profile</title>
     
-    <!-- Подключаем официальные библиотеки Firebase (Compat версия для поддержки старого синтаксиса) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        body { background: #0b0c10; color: #fff; font-family: sans-serif; padding: 20px; }
-        .box { background: #1f2833; padding: 20px; border-radius: 8px; max-width: 400px; margin: 0 auto; border: 1px solid #45f3ff; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #45f3ff; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #66fcf1; color: #000; font-weight: bold; border: none; cursor: pointer; }
-        #log { margin-top: 15px; padding: 10px; background: #ff0055; color: #fff; display: none; border-radius: 4px; }
-        #success-log { margin-top: 15px; padding: 10px; background: #00aa50; color: #fff; display: none; border-radius: 4px; }
+        body { 
+            background: #0b0c10; 
+            color: #c5c6c7; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 { text-align: center; color: #66fcf1; text-shadow: 0 0 10px rgba(102, 252, 241, 0.5); }
+        
+        .card { 
+            background: #1f2833; 
+            border: 1px solid #45f3ff; 
+            border-radius: 12px; 
+            padding: 25px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+            transition: all 0.4s ease;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #66fcf1; font-size: 14px; font-weight: bold; }
+        input, select, textarea { 
+            width: 100%; padding: 12px; background: #0b0c10; color: #fff; 
+            border: 1px solid #45f3ff; border-radius: 6px; box-sizing: border-box; 
+            font-family: inherit; transition: 0.3s;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 8px #66fcf1; }
+        
+        .color-picker-wrapper { display: flex; align-items: center; gap: 15px; }
+        input[type="color"] { width: 50px; height: 50px; padding: 0; border: none; cursor: pointer; border-radius: 50%; }
+        
+        button { 
+            width: 100%; padding: 15px; margin-top: 10px; background: #66fcf1; 
+            color: #0b0c10; font-weight: 900; font-size: 16px; border: none; 
+            border-radius: 6px; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.4); transition: 0.3s;
+        }
+        button:hover { background: #45f3ff; box-shadow: 0 0 25px #45f3ff; transform: translateY(-2px); }
+        
+        /* Стили для готового профиля */
+        #profile-card { display: none; text-align: center; }
+        .avatar-placeholder { 
+            width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50%; 
+            background: #0b0c10; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; border: 3px solid; box-shadow: 0 0 20px;
+        }
+        .profile-stat { display: flex; justify-content: space-between; border-bottom: 1px solid #2a3644; padding: 10px 0; }
+        .profile-stat span:first-child { color: #8a9ba8; }
+        .profile-stat span:last-child { font-weight: bold; color: #fff; }
+        .bio-box { margin-top: 20px; background: #0b0c10; padding: 15px; border-radius: 6px; font-style: italic; color: #c5c6c7; text-align: left; }
+        
+        #error-log { margin-top: 15px; padding: 10px; background: #ff0055; color: #fff; display: none; border-radius: 6px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>Регистрация Игрока</h2>
-    <form id="g-form">
-        <input type="text" id="g-login" placeholder="Игровой Логин" required>
-        <input type="email" id="g-email" placeholder="Ваш Gmail" required>
-        <input type="password" id="g-pass" placeholder="Пароль" required>
-        <select id="g-faction">
-            <option value="Shadow Syndicate">Shadow Syndicate</option>
-            <option value="Cyber Warriors">Cyber Warriors</option>
-        </select>
-        <button type="submit">Сохранить данные</button>
-    </form>
-    <div id="log"></div>
-    <div id="success-log"></div>
+<div class="container">
+    <div id="setup-section" class="card">
+        <h1>Создание Профиля</h1>
+        <form id="gamer-form">
+            <div class="form-group">
+                <label>Игровой Никнейм</label>
+                <input type="text" id="g-login" placeholder="ShadowNinja99" required>
+            </div>
+            <div class="form-group">
+                <label>Почта (Gmail)</label>
+                <input type="email" id="g-email" placeholder="example@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="g-pass" placeholder="••••••••" required>
+            </div>
+            
+            <hr style="border-color: #2a3644; margin: 25px 0;">
+            
+            <div class="form-group">
+                <label>Игровая Фракция</label>
+                <select id="g-faction">
+                    <option value="Теневой Синдикат">Теневой Синдикат (Stealth & Hack)</option>
+                    <option value="Кибер Воины">Кибер Воины (Assault & Tech)</option>
+                    <option value="Орден Хаоса">Орден Хаоса (Destruction)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Боевая Роль</label>
+                <select id="g-role">
+                    <option value="Штурмовик">Штурмовик / Кэрри</option>
+                    <option value="Снайпер">Снайпер / Разведчик</option>
+                    <option value="Саппорт">Инженер / Саппорт</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Цвет интерфейса (Неон)</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="g-color" value="#66fcf1">
+                    <span style="color:#8a9ba8; font-size:14px;">Выбери цвет своей ауры</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>О себе (Статус)</label>
+                <textarea id="g-bio" rows="3" placeholder="Люблю рашить мид и взламывать терминалы..."></textarea>
+            </div>
+            
+            <button type="submit">Активировать Профиль</button>
+        </form>
+        <div id="error-log"></div>
+    </div>
+
+    <!-- КАРТОЧКА ПРОФИЛЯ (Скрыта до успешной регистрации) -->
+    <div id="profile-card" class="card">
+        <div class="avatar-placeholder" id="p-avatar">🎮</div>
+        <h2 id="p-login" style="margin: 0 0 5px 0;"></h2>
+        <div style="color: #8a9ba8; margin-bottom: 25px;" id="p-email"></div>
+        
+        <div class="profile-stat">
+            <span>Фракция:</span>
+            <span id="p-faction"></span>
+        </div>
+        <div class="profile-stat">
+            <span>Класс:</span>
+            <span id="p-role"></span>
+        </div>
+        
+        <div class="bio-box">
+            <strong style="display:block; margin-bottom:5px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;" id="p-bio-title">Биография</strong>
+            <span id="p-bio"></span>
+        </div>
+        
+        <button onclick="location.reload()" style="margin-top: 25px; background: transparent; border: 2px solid; color: inherit;" id="btn-reset">Выйти</button>
+    </div>
 </div>
 
 <script>
-    // Встраиваем твои параметры Firebase напрямую
+    // Встроенный конфиг Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
         authDomain: "izunax-c1707.firebaseapp.com",
@@ -47,39 +157,62 @@
         appId: "1:755797664743:web:2eaeff896c9df27075d342"
     };
 
-    // Инициализация Firebase внутри этого файла
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
-    
-    // Создаем подключение к базе данных
     const localDb = firebase.firestore();
 
-    document.getElementById('g-form').addEventListener('submit', function(e) {
+    document.getElementById('gamer-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const logBox = document.getElementById('log');
-        const successBox = document.getElementById('success-log');
-        
-        logBox.style.display = 'none';
-        successBox.style.display = 'none';
+        const errorLog = document.getElementById('error-log');
+        errorLog.style.display = 'none';
 
-        // Отправка данных напрямую через локальный объект базы
-        localDb.collection("game_accounts").add({
-            game_login: document.getElementById('g-login').value,
-            gmail: document.getElementById('g-email').value,
+        // Собираем данные
+        const data = {
+            login: document.getElementById('g-login').value,
+            email: document.getElementById('g-email').value,
             password: document.getElementById('g-pass').value,
             faction: document.getElementById('g-faction').value,
+            role: document.getElementById('g-role').value,
+            color: document.getElementById('g-color').value,
+            bio: document.getElementById('g-bio').value || "Информация скрыта.",
             createdAt: new Date()
-        })
-        .then((docRef) => {
-            successBox.style.display = 'block';
-            successBox.innerText = "Успех! Данные записаны в Firestore. ID: " + docRef.id;
-            document.getElementById('g-form').reset();
+        };
+
+        // Отправляем в Firebase
+        localDb.collection("game_accounts").add(data)
+        .then(() => {
+            // Прячем форму, показываем профиль
+            document.getElementById('setup-section').style.display = 'none';
+            const pCard = document.getElementById('profile-card');
+            pCard.style.display = 'block';
+            
+            // Применяем кастомный цвет ко всем элементам профиля
+            pCard.style.borderColor = data.color;
+            pCard.style.boxShadow = `0 8px 30px ${data.color}40`;
+            
+            const avatar = document.getElementById('p-avatar');
+            avatar.style.borderColor = data.color;
+            avatar.style.color = data.color;
+            avatar.style.boxShadow = `0 0 20px ${data.color}`;
+            
+            document.getElementById('p-login').innerText = data.login;
+            document.getElementById('p-login').style.color = data.color;
+            document.getElementById('p-email').innerText = data.email;
+            document.getElementById('p-faction').innerText = data.faction;
+            document.getElementById('p-role').innerText = data.role;
+            document.getElementById('p-bio').innerText = data.bio;
+            
+            document.getElementById('p-bio-title').style.color = data.color;
+            
+            const resetBtn = document.getElementById('btn-reset');
+            resetBtn.style.borderColor = data.color;
+            resetBtn.style.color = data.color;
         })
         .catch((err) => {
-            logBox.style.display = 'block';
-            logBox.innerText = "Ошибка Firebase: " + err.message;
+            errorLog.style.display = 'block';
+            errorLog.innerText = "Ошибка: " + err.message;
         });
     });
 </script>
