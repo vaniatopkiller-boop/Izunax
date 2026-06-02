@@ -1,4 +1,4 @@
-// Головний керуючий модуль авторизації, постів та модерації IZUNAX Core
+// Основной управляющий модуль авторизации, постов и модерации IZUNAX Core
 
 const firebaseConfig = {
     apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
@@ -16,7 +16,7 @@ let currentUser = null;
 let currentUserId = null;
 let currentAuthMode = 'login';
 
-const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' width='100' height='100'><circle cx='50' cy='50' r='50' fill='%23251647'/><circle cx='50' cy='40' r='18' fill='%23a855f7'/></svg>";
+const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><circle cx='50' cy='50' r='50' fill='%23251647'/><circle cx='50' cy='40' r='18' fill='%23a855f7'/></svg>";
 
 document.addEventListener("DOMContentLoaded", () => {
     const session = localStorage.getItem("izunax_session");
@@ -35,6 +35,7 @@ function setMode(mode) {
     document.getElementById('nick-group').style.display = (mode === 'reg') ? 'block' : 'none';
 }
 
+// Полностью исправленная функция отправки формы (Вход / Регистрация)
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('g-email').value.trim();
@@ -42,31 +43,53 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
 
     if (currentAuthMode === 'reg') {
         const login = document.getElementById('g-login').value.trim();
-        const check = await db.collection("game_accounts").where("email", "==", email).get();
-        if (!check.empty) { alert("Даний email вже зареєстрований."); return; }
+        if (!login) { alert("Введите имя оператора (Ник) для регистрации!"); return; }
 
-        let role = (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') ? 'admin' : 'user';
+        try {
+            // Проверяем, существует ли уже такой юзер
+            const check = await db.collection("game_accounts").where("email", "==", email).get();
+            if (!check.empty) { alert("Данный email уже зарегистрирован в системе."); return; }
 
-        const userObj = { login, email, pass, role, avatar: defaultAvatar, createdAt: new Date() };
-        db.collection("game_accounts").add(userObj).then((doc) => authorizeUser(userObj, doc.id));
+            // Выставляем роль. Если это ты — автоматом даем admin
+            let role = (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') ? 'admin' : 'user';
+
+            const userObj = { 
+                login: login, 
+                email: email, 
+                pass: pass, 
+                role: role, 
+                avatar: defaultAvatar, 
+                createdAt: new Date() 
+            };
+
+            // Сохраняем в Firebase Firestore
+            const docRef = await db.collection("game_accounts").add(userObj);
+            alert("Регистрация успешна! Сессия инициализирована.");
+            authorizeUser(userObj, docRef.id);
+        } catch (error) {
+            alert("Ошибка при регистрации: " + error.message);
+        }
     } else {
+        // Логика Входа
         db.collection("game_accounts").where("email", "==", email).where("pass", "==", pass).get().then((snap) => {
             if (!snap.empty) {
                 let uData = snap.docs[0].data();
+                // Принудительная проверка твоей админки
                 if (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
                     uData.role = 'admin';
                     db.collection("game_accounts").doc(snap.docs[0].id).update({ role: 'admin' });
                 }
                 authorizeUser(uData, snap.docs[0].id);
             } else {
+                // Если аккаунта админа ещё нет физически в базе, но ты вводишь свои данные — создаем его
                 if (email.toLowerCase() === 'vaniatopkiller@gmail.com' && pass === '777_admin') {
                     const adminObj = { login: "ROOT_ADMIN", email, pass, role: "admin", avatar: defaultAvatar, createdAt: new Date() };
                     db.collection("game_accounts").add(adminObj).then(doc => authorizeUser(adminObj, doc.id));
                 } else {
-                    alert("Помилка автентифікації.");
+                    alert("Неверный пароль или Email. Если у вас нет аккаунта, переключитесь на вкладку Регистрация.");
                 }
             }
-        });
+        }).catch(err => alert("Ошибка сети базы данных: " + err.message));
     }
 });
 
@@ -93,7 +116,6 @@ function authorizeUser(userObj, id) {
     document.getElementById('p-edit-login').value = userObj.login;
     document.getElementById('profile-avatar-img').src = userObj.avatar || defaultAvatar;
     
-    // ВІДКРИТТЯ ROOT-ПАНЕЛІ ДЛЯ ВЛАСНИКА АККАУНТА GMAIL
     if (userObj.email.toLowerCase() === 'vaniatopkiller@gmail.com' || userObj.role === 'admin') {
         document.getElementById('btn-tab-admin').style.display = 'block';
         initAdminPanel();
@@ -141,7 +163,7 @@ document.getElementById('post-form').addEventListener('submit', (e) => {
     }).then(() => {
         document.getElementById('post-form').reset();
         base64Media = ""; mediaFormat = "none";
-        alert("Пост додано в стрічку!");
+        alert("Пост добавлен в ленту!");
         switchTab('feed');
     });
 });
@@ -191,12 +213,11 @@ document.getElementById('profile-update-form').addEventListener('submit', (e) =>
 
     db.collection("game_accounts").doc(currentUserId).update({ login, avatar: av }).then(() => {
         currentUser.login = login; currentUser.avatar = av;
-        alert("Профіль синхронізовано!");
+        alert("Профиль синхронизирован!");
         loadInstagramFeed();
     });
 });
 
-// Експорт функції імпорту новин
 window.importNewsToFirebase = function(title, desc, imgUrl) {
     if (!currentUser) return;
     
@@ -205,31 +226,18 @@ window.importNewsToFirebase = function(title, desc, imgUrl) {
         text: desc,
         mediaUrl: imgUrl,
         mediaType: "image",
-        author: `${currentUser.login} (Імпорт)`,
+        author: `${currentUser.login} (Импорт)`,
         authorAvatar: currentUser.avatar || defaultAvatar,
         authorEmail: currentUser.email,
         likes: [],
         createdAt: new Date()
     }).then(() => {
-        alert("Новину успішно імпортовано у стрічку Хабу!");
+        alert("Новость успешно импортирована в ленту!");
     }).catch(err => {
-        alert("Помилка імпорту: " + err.message);
+        alert("Ошибка импорта: " + err.message);
     });
 };
 
-function setupInfiniteNewsScroll() {
-    window.addEventListener('scroll', () => {
-        if (document.getElementById('itc-view-container').style.display !== 'none') {
-            if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 150) {
-                if (typeof startNewsScraping === 'function') {
-                    startNewsScraping(true);
-                }
-            }
-        }
-    });
-}
-
-// ПАНЕЛЬ АДМІНІСТРАТОРА (ROOT_ПАНЕЛЬ)
 function initAdminPanel() {
     db.collection("hub_posts").orderBy("createdAt", "desc").onSnapshot(snap => {
         const list = document.getElementById('admin-posts-list'); if(!list) return;
@@ -260,7 +268,7 @@ function initAdminPanel() {
                         <span style="font-size:11px; color:var(--text-muted);">${u.email} [Роль: ${u.role || 'user'}]</span>
                     </div>
                     <div>
-                        <button class="btn-grant" onclick="toggleAdminRole('${doc.id}', '${u.role}')">${u.role === 'admin' ? 'Розжалувати' : 'Зробити адміном'}</button>
+                        <button class="btn-grant" onclick="toggleAdminRole('${doc.id}', '${u.role}')">${u.role === 'admin' ? 'Разжаловать' : 'Сделать админом'}</button>
                         <button class="btn-delete" onclick="deleteUserByAdmin('${doc.id}')">БАН</button>
                     </div>
                 </div>`;
@@ -269,22 +277,16 @@ function initAdminPanel() {
 }
 
 function deletePostByAdmin(id) {
-    if(confirm("Видалити цей пост безповоротно з бази Firestore?")) {
-        db.collection("hub_posts").doc(id).delete();
-    }
+    if(confirm("Удалить пост?")) { db.collection("hub_posts").doc(id).delete(); }
 }
 
 function deleteUserByAdmin(id) {
-    if(confirm("Забанити та видалити акаунт цього користувача?")) {
-        db.collection("game_accounts").doc(id).delete();
-    }
+    if(confirm("Забанить аккаунт пользователя?")) { db.collection("game_accounts").doc(id).delete(); }
 }
 
 function toggleAdminRole(id, currentRole) {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
-    db.collection("game_accounts").doc(id).update({ role: newRole }).then(() => {
-        alert("Права доступу користувача змінено!");
-    });
+    db.collection("game_accounts").doc(id).update({ role: newRole });
 }
 
 function switchTab(id) {
