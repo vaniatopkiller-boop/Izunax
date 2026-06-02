@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX // Terminal</title>
+    <title>IZUNAX // Cyber Brutalism Terminal</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
         :root {
-            --bg-color: #05050a;
-            --panel-bg: #0f111a;
-            --neon-cyan: #0ff;
-            --neon-pink: #f0f;
-            --border-color: #1a1e2d;
-            --text-main: #c5c6c7;
+            --bg-black: #030305;
+            --panel-dark: #07090e;
+            --neon-blue: #00a2ff;
+            --cyber-cyan: #00f0ff;
+            --border-blue: #111a2e;
+            --text-bright: #ffffff;
+            --text-muted: #53647c;
         }
 
         body { 
-            background: var(--bg-color); 
-            color: var(--text-main); 
+            background: var(--bg-black); 
+            color: var(--text-bright); 
             font-family: 'Courier New', Courier, monospace; 
             margin: 0; 
             padding: 0;
@@ -32,10 +33,11 @@
             top: 0;
             left: 0;
             z-index: -1;
-            opacity: 0.15;
+            opacity: 0.12;
             pointer-events: none;
         }
 
+        /* --- СТИЛЬ АВТОРИЗАЦИИ (БРУТАЛИЗМ) --- */
         #auth-section {
             display: flex;
             justify-content: center;
@@ -45,86 +47,145 @@
         }
 
         .auth-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--neon-cyan);
-            padding: 30px;
+            background: var(--panel-dark);
+            border: 1px solid var(--border-blue);
+            padding: 40px;
             width: 100%;
             max-width: 450px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
             position: relative;
-            z-index: 10;
         }
 
-        h1 { text-align: center; color: var(--neon-cyan); text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan); letter-spacing: 2px; margin-bottom: 25px; }
+        .tech-index {
+            font-size: 14px;
+            color: var(--neon-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        h1 { 
+            font-size: 32px; 
+            font-weight: 900; 
+            color: var(--text-bright); 
+            text-transform: uppercase; 
+            margin: 0 0 30px 0;
+            letter-spacing: -1px;
+        }
         
-        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-container { display: flex; border: 1px solid var(--border-blue); margin-bottom: 25px; }
         .tab-btn { 
-            flex: 1; padding: 12px; background: transparent; border: 1px solid var(--neon-cyan); 
-            color: var(--neon-cyan); cursor: pointer; font-family: inherit; font-weight: bold; text-transform: uppercase;
+            flex: 1; padding: 15px; background: transparent; border: none;
+            color: var(--text-muted); cursor: pointer; font-family: inherit; font-weight: bold; text-transform: uppercase;
+            font-size: 13px; transition: 0.2s;
         }
-        .tab-btn.active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
+        .tab-btn.active { background: var(--border-blue); color: var(--cyber-cyan); }
 
-        .input-group { margin-bottom: 18px; position: relative; }
-        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
-        .required-tag { color: var(--neon-pink); font-weight: bold; float: right; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .required-tag { color: var(--neon-blue); font-weight: bold; float: right; }
         
         input, select, textarea { 
-            width: 100%; padding: 12px; background: #000; color: #fff; 
-            border: 1px solid var(--border-color); box-sizing: border-box; font-family: inherit;
+            width: 100%; padding: 14px; background: #000; color: #fff; 
+            border: 1px solid var(--border-blue); box-sizing: border-box; font-family: inherit;
+            font-size: 14px;
         }
-        input:focus, select:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+        input:focus, select:focus, textarea:focus { border-color: var(--neon-blue); outline: none; }
 
-        .security-notice { font-size: 11px; color: #666; margin-top: 5px; line-height: 1.3; }
+        .security-notice { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
 
+        /* Фирменная сплошная кнопка из референса */
         .btn-main {
-            width: 100%; padding: 14px; background: transparent; border: 2px solid var(--neon-cyan);
-            color: var(--neon-cyan); font-weight: bold; cursor: pointer; text-transform: uppercase;
-            transition: 0.3s; font-family: inherit; letter-spacing: 1px; margin-top: 10px;
+            width: 100%; padding: 16px; background: var(--neon-blue); border: none;
+            color: #000; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            font-family: inherit; letter-spacing: 1px; margin-top: 15px; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .btn-main:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        .btn-main:hover { background: var(--cyber-cyan); }
 
-        #main-hub { display: none; position: relative; z-index: 10; }
-        .hub-nav { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px 20px; border-bottom: 1px solid var(--neon-cyan); }
-        .nav-logo { color: var(--neon-cyan); margin: 0; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-btn { background: none; border: none; color: #fff; cursor: pointer; font-family: inherit; text-transform: uppercase; padding: 5px 10px; }
-        .nav-btn.active { color: var(--neon-pink); border-bottom: 2px solid var(--neon-pink); }
+        /* --- ГЛАВНЫЙ ИНТЕРФЕЙС ХАБА --- */
+        #main-hub { display: none; }
         
-        .hub-container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .hub-nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--panel-dark); padding: 20px 40px; 
+            border-bottom: 1px solid var(--border-blue); 
+        }
+        .nav-logo { color: var(--text-bright); margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; text-transform: uppercase; padding: 10px 0; font-weight: bold; font-size: 13px; }
+        .nav-btn.active { color: var(--cyber-cyan); }
+        
+        .hub-container { max-width: 1200px; margin: 40px auto; padding: 0 40px; }
+        
+        .section-title {
+            font-size: 14px; color: var(--text-muted); text-transform: uppercase;
+            margin-bottom: 25px; border-bottom: 1px solid var(--border-blue); padding-bottom: 10px;
+            display: flex; gap: 10px;
+        }
+        .section-title span { color: var(--neon-blue); font-weight: bold; }
+
+        /* Сетка постов */
+        .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1px; background: var(--border-blue); }
         
         .post-card { 
-            background: var(--panel-bg); 
-            border: 1px solid var(--border-color); 
-            padding: 20px; 
-            transition: all 0.3s ease;
+            background: var(--panel-dark); 
+            padding: 30px; 
+            transition: background 0.2s;
         }
         .post-card:hover {
-            box-shadow: 0 0 15px var(--neon-cyan);
-            transform: scale(1.02);
-            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both;
+            background: #0d121f;
         }
         
-        @keyframes glitch {
-            0% { transform: translate(0) scale(1.02); }
-            20% { transform: translate(-2px, 2px) scale(1.02); }
-            40% { transform: translate(-2px, -2px) scale(1.02); }
-            60% { transform: translate(2px, 2px) scale(1.02); }
-            100% { transform: translate(0) scale(1.02); }
-        }
+        .post-header { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 11px; margin-bottom: 15px; text-transform: uppercase; }
+        .post-header span:first-child { color: var(--neon-blue); }
+        .post-title { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; text-transform: uppercase; color: var(--text-bright); }
+        .post-text { font-size: 13px; color: #a0aec0; line-height: 1.6; margin: 0; }
 
-        .post-header { display: flex; justify-content: space-between; color: #666; font-size: 12px; margin-bottom: 10px; }
-        .action-link { display: inline-block; margin-top: 15px; color: var(--neon-cyan); text-decoration: none; font-size: 14px; border: 1px solid var(--neon-cyan); padding: 8px 15px; }
-        .action-link:hover { background: var(--neon-cyan); color: #000; }
+        /* Профиль в стиле системного статуса */
+        .profile-container {
+            border: 1px solid var(--border-blue);
+            background: var(--panel-dark);
+            padding: 40px;
+        }
+        
+        .status-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid #0f172a;
+            font-size: 14px;
+        }
+        .status-label { color: var(--text-muted); text-transform: uppercase; }
+        .status-value { color: var(--text-bright); font-weight: bold; }
+        
+        .action-link { 
+            display: inline-flex; justify-content: space-between; align-items: center;
+            margin-top: 30px; background: var(--text-bright); color: #000; 
+            text-decoration: none; font-size: 13px; font-weight: bold; padding: 15px 25px; text-transform: uppercase;
+        }
+        .action-link:hover { background: var(--cyber-cyan); }
+
+        /* Полоса предупреждения (Zebra Stripes) из низа картинки */
+        .zebra-footer {
+            height: 15px;
+            background: repeating-linear-gradient(
+                -45deg,
+                #000,
+                #000 10px,
+                var(--neon-blue) 10px,
+                var(--neon-blue) 20px
+            );
+            margin-top: 60px;
+            border-top: 1px solid var(--border-blue);
+        }
     </style>
 </head>
 <body>
 
 <canvas id="matrix-canvas"></canvas>
 
+<!-- ЭКРАН ВХОДА -->
 <div id="auth-section">
     <div class="auth-card">
-        <h1>IZUNAX TERMINAL</h1>
+        <div class="tech-index">//SCN_01</div>
+        <h1>IZUNAX_TERMINAL</h1>
         
         <div class="tab-container">
             <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Вход</button>
@@ -133,76 +194,98 @@
 
         <form id="auth-form">
             <div class="input-group">
-                <label>Адрес связи (Gmail) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
-                <input type="email" id="g-email" placeholder="example@gmail.com" required>
+                <label>Адрес связи (Gmail) <span class="required-tag">/REQ</span></label>
+                <input type="email" id="g-email" placeholder="USER@GMAIL.COM" required>
             </div>
 
             <div class="input-group">
-                <label>Ключ доступа (Пароль) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
-                <input type="password" id="g-pass" placeholder="Введите настоящий игровой пароль" required>
+                <label>Ключ доступа (Пароль) <span class="required-tag">/REQ</span></label>
+                <input type="password" id="g-pass" placeholder="••••••••••••" required>
                 <div class="security-notice">
-                    *Внимание: используйте ваш постоянный пароль от игрового аккаунта для синхронизации с базой данных.
+                    *SYSTEM_ALERT: Используйте настоящий игровой ключ для синхронизации структуры.
                 </div>
             </div>
 
             <div class="input-group" id="nick-group" style="display: none;">
-                <label>Позывной (Никнейм) <span class="required-tag">[ОБЯЗАТЕЛЬНО]</span></label>
-                <input type="text" id="g-login" placeholder="Ваш игровой ник">
+                <label>Позывной (Никнейм) <span class="required-tag">/REQ</span></label>
+                <input type="text" id="g-login" placeholder="NETRUNNER_ID">
             </div>
             
             <div id="reg-fields" style="display: none;">
                 <div class="input-group">
                     <label>Выбор Фракции</label>
                     <select id="g-faction">
-                        <option value="Синдикат">Теневой Синдикат</option>
-                        <option value="Dagon Explorers">Исследователи Dagon</option>
-                        <option value="Кибер Воины">Кибер Воины</option>
+                        <option value="Синдикат">ТЕНЕВОЙ СИНДИКАТ</option>
+                        <option value="Dagon Explorers">ИССЛЕДОВАТЕЛИ DAGON</option>
+                        <option value="Кибер Воины">КИБЕР ВОИНЫ</option>
                     </select>
                 </div>
                 
                 <div class="input-group">
                     <label>Сводка (О себе)</label>
-                    <textarea id="g-bio" rows="2" placeholder="Пара слов для профиля..."></textarea>
+                    <textarea id="g-bio" rows="2" placeholder="ВВЕДИТЕ ДАННЫЕ..."></textarea>
                 </div>
-
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                    <input type="color" id="g-color" value="#00ffff" style="width: 40px; height: 40px; padding: 0; margin: 0; border: none; cursor: pointer;">
-                    <span style="font-size: 12px; color: #888;">Цвет интерфейса профиля</span>
-                </div>
+                <input type="hidden" id="g-color" value="#00a2ff">
             </div>
 
-            <button type="submit" class="btn-main" id="submit-btn">Авторизовать терминал</button>
+            <button type="submit" class="btn-main" id="submit-btn">
+                <span>Авторизовать терминал</span> <span>↗</span>
+            </button>
         </form>
     </div>
 </div>
 
+<!-- ГЛАВНЫЙ ИНТЕРФЕЙС -->
 <div id="main-hub">
     <nav class="hub-nav">
-        <h2 class="nav-logo">IZUNAX // HUB</h2>
+        <h2 class="nav-logo">IZUNAX // SYSTEM</h2>
         <div class="nav-links">
             <button class="nav-btn active" id="btn-tab-feed" onclick="switchTab('feed')">Лента</button>
-            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Профиль</button>
+            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Статус системы</button>
         </div>
     </nav>
+    
     <div class="hub-container">
-        <div id="feed-view" class="feed-grid"></div>
+        <!-- Вкладка ленты -->
+        <div id="feed-view-container">
+            <div class="section-title"><span>/01</span> SELECTED_WORK // ЖИВОЙ ПОТОК ДАННЫХ</div>
+            <div id="feed-view" class="feed-grid"></div>
+        </div>
         
+        <!-- Вкладка профиля -->
         <div id="profile-view" style="display: none;">
-            <div id="p-card-body" style="background: var(--panel-bg); padding: 30px; border: 1px solid var(--neon-cyan); text-align: center;">
-                <div id="p-avatar" style="width: 80px; height: 80px; border: 2px solid var(--neon-cyan); borderRadius: 50%; margin: 0 auto 15px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 24px;">U</div>
-                <h2 id="p-login" style="color: var(--neon-cyan); margin: 0 0 10px 0;"></h2>
-                <p id="p-email" style="margin: 5px 0; color: #888;"></p>
-                <p id="p-faction" style="margin: 5px 0; font-weight: bold;"></p>
-                <p id="p-bio" style="margin: 15px 0; color: var(--text-main); font-style: italic;"></p>
-                <p id="p-xp" style="margin: 10px 0; color: var(--neon-pink); font-weight: bold; font-family: monospace;"></p>
+            <div class="section-title"><span>/02</span> SYSTEM_STATUS // ДАННЫЕ ОПЕРАТОРА</div>
+            <div class="profile-container">
+                <div class="status-row">
+                    <span class="status-label">Оператор</span>
+                    <span class="status-value" id="p-login"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Канал связи</span>
+                    <span class="status-value" id="p-email"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Фракция</span>
+                    <span class="status-value" id="p-faction"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Статус ядра</span>
+                    <span class="status-value" id="p-bio"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">База данных XP</span>
+                    <span class="status-value" id="p-xp" style="color: var(--cyber-cyan);"></span>
+                </div>
                 
-                <div style="margin-top: 25px; display: flex; justify-content: center; gap: 15px;">
-                    <a href="publish.html" class="action-link">Создать публикацию</a>
-                    <button onclick="localStorage.removeItem('izunax_user'); location.reload();" class="btn-main" style="border-color:var(--neon-pink); color:var(--neon-pink); margin: 0; max-width: 150px; padding: 8px;">Выйти</button>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <a href="publish.html" class="action-link">Создать публикацию &nbsp;&nbsp; ↗</a>
+                    <button onclick="localStorage.removeItem('izunax_user'); location.reload();" class="btn-main" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; max-width: 150px; padding: 13px; font-size: 12px; margin-top: 30px;">Сбросить сессию</button>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div class="zebra-footer"></div>
 </div>
 
 <script src="izunax-extras.js"></script>
