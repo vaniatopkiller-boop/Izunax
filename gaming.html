@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX // Liquid Glass Terminal</title>
+    <title>IZUNAX // Игровой Медиа-Хаб</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -11,18 +11,21 @@
     <style>
         :root {
             --bg-deep: #05020c;
-            --glass-card: rgba(14, 8, 28, 0.5);
+            --glass-card: rgba(14, 8, 28, 0.65);
             --glass-border: rgba(168, 85, 247, 0.25);
             --neon-purple: #a855f7;
             --neon-glow: #c084fc;
             --text-bright: #ffffff;
             --text-muted: #94a3b8;
+            --accent-red: #ef4444;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         body { 
             background: var(--bg-deep); 
             color: var(--text-bright); 
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0; 
             padding: 0;
             overflow-x: hidden;
@@ -33,277 +36,326 @@
             top: 0;
             left: 0;
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.35;
             pointer-events: none;
         }
 
-        /* --- ЕКРАН АВТОРИЗАЦІЇ (GLASSMORPHISM) --- */
+        /* --- СТИЛЬ АВТОРИЗАЦИИ --- */
         #auth-section {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            position: relative;
-        }
-
-        /* М'яке фіолетове світло на фоні, як біля медузи на референсі */
-        #auth-section::before {
-            content: '';
-            position: absolute;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(168,85,247,0.3) 0%, rgba(0,0,0,0) 70%);
-            top: 15%;
-            z-index: 1;
         }
 
         .auth-card {
             background: var(--glass-card);
-            backdrop-filter: blur(16px) saturate(120%);
-            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 40px;
+            padding: 35px;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-            position: relative;
-            z-index: 10;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
 
         .brand-badge {
             display: inline-block;
-            background: rgba(168, 85, 247, 0.15);
+            background: rgba(168, 85, 247, 0.2);
             color: var(--neon-glow);
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 50px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid rgba(168, 85, 247, 0.3);
         }
 
-        /* Градієнтний текст як на картинці 1000075334.jpg */
         h1 { 
-            font-size: 36px; 
-            font-weight: 700; 
-            background: linear-gradient(135deg, #fff 30%, var(--neon-glow) 100%);
+            font-size: 32px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #fff 40%, var(--neon-glow) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 0 0 10px 0;
-            letter-spacing: -1px;
+            margin: 0 0 8px 0;
         }
 
-        p.subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+        p.subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; margin-top: 0; }
         
         .tab-container { 
             display: flex; 
             background: rgba(0, 0, 0, 0.4); 
-            padding: 5px; 
-            border-radius: 14px; 
-            margin-bottom: 25px; 
+            padding: 4px; 
+            border-radius: 12px; 
+            margin-bottom: 22px; 
             border: 1px solid rgba(255,255,255,0.05);
         }
         .tab-btn { 
-            flex: 1; padding: 12px; background: transparent; border: none;
+            flex: 1; padding: 10px; background: transparent; border: none;
             color: var(--text-muted); cursor: pointer; font-family: inherit; font-weight: 600;
-            font-size: 13px; border-radius: 10px; transition: all 0.3s ease;
+            font-size: 13px; border-radius: 8px; transition: all 0.2s ease;
         }
-        .tab-btn.active { background: rgba(168, 85, 247, 0.25); color: #fff; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2); }
+        .tab-btn.active { background: rgba(168, 85, 247, 0.3); color: #fff; }
 
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+        .input-group { margin-bottom: 18px; position: relative; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
         
         input, select, textarea { 
-            width: 100%; padding: 14px; background: rgba(0,0,0,0.3); color: #fff; 
-            border: 1px solid var(--glass-border); border-radius: 12px; box-sizing: border-box; font-family: inherit;
+            width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.4); color: #fff; 
+            border: 1px solid var(--glass-border); border-radius: 12px; font-family: inherit;
             font-size: 14px; transition: all 0.3s;
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--neon-purple); outline: none; box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+        input:focus, select:focus, textarea:focus { border-color: var(--neon-purple); outline: none; box-shadow: 0 0 12px rgba(168, 85, 247, 0.2); }
 
-        /* Округла кнопка-капсула з референсу */
         .btn-main {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--neon-purple) 0%, #7c3aed 100%); border: none;
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--neon-purple) 0%, #7c3aed 100%); border: none;
             color: #fff; font-weight: 600; cursor: pointer; border-radius: 50px;
-            font-family: inherit; transition: all 0.3s; font-size: 14px;
+            font-family: inherit; transition: all 0.2s; font-size: 14px;
             display: flex; justify-content: center; align-items: center; gap: 8px;
-            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.25);
         }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(168, 85, 247, 0.4); }
+        .btn-main:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(168, 85, 247, 0.35); }
 
-        /* --- ГОЛОВНИЙ ІНТЕРФЕЙС ХАБА --- */
+        /* --- ГЛАВНЫЙ ИНТЕРФЕЙС ХАБА --- */
         #main-hub { display: none; }
         
         .hub-nav { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: var(--glass-card); backdrop-filter: blur(12px); padding: 20px 40px; 
-            border-bottom: 1px solid var(--glass-border); sticky: top; top: 0; z-index: 100;
+            background: var(--glass-card); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 15px 30px; 
+            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100;
         }
-        .nav-logo { font-size: 22px; font-weight: 800; background: linear-gradient(90deg, #fff, var(--neon-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
-        .nav-links { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
-        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; padding: 10px 22px; font-weight: 600; font-size: 13px; border-radius: 50px; transition: 0.3s; }
+        .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(90deg, #fff, var(--neon-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+        .nav-links { display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
+        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; padding: 8px 16px; font-weight: 600; font-size: 13px; border-radius: 50px; transition: 0.2s; }
         .nav-btn.active { color: #fff; background: var(--neon-purple); }
         
-        .hub-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .hub-container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
         
         .section-header {
-            font-size: 28px; font-weight: 700; margin-bottom: 30px; letter-spacing: -0.5px;
-            display: flex; align-items: center; gap: 12px;
+            font-size: 22px; font-weight: 700; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .section-header span { color: var(--neon-glow); }
 
-        /* Скляна сітка карток */
-        .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 25px; }
-        
-        .post-card { 
-            background: var(--glass-card); 
+        /* --- ЛЕНТА В СТИЛЕ ИНСТАГРАМ --- */
+        .publish-card {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 25px;
             backdrop-filter: blur(10px);
+        }
+
+        .feed-list { display: flex; flex-direction: column; gap: 25px; }
+        
+        .insta-post { 
+            background: var(--glass-card); 
+            backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 30px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .post-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--neon-glow);
-            box-shadow: 0 15px 35px rgba(168, 85, 247, 0.25);
-        }
-        
-        .post-header { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 12px; margin-bottom: 15px; }
-        .post-header .badge { background: rgba(168,85,247,0.1); color: var(--neon-glow); padding: 4px 10px; border-radius: 6px; font-weight: 600; }
-        .post-title { font-size: 18px; font-weight: 700; margin: 0 0 12px 0; line-height: 1.4; color: #fff; }
-        .post-text { font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 0; }
-        
-        .itc-source { font-size: 11px; color: var(--neon-glow); margin-top: 15px; display: block; font-weight: 600; text-transform: uppercase; }
 
-        /* Профіль */
-        .profile-box {
+        .post-author-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .author-info { display: flex; align-items: center; gap: 10px; }
+        .author-avatar { width: 36px; height: 36px; border-radius: 50px; object-fit: cover; border: 1px solid var(--neon-purple); background: #110c22; }
+        .author-name { font-weight: 600; font-size: 14px; }
+        .post-time { font-size: 11px; color: var(--text-muted); }
+
+        .post-media-container { width: 100%; background: #000; position: relative; display: flex; justify-content: center; align-items: center; }
+        .post-media-container img, .post-media-container video { width: 100%; max-height: 500px; object-fit: contain; display: block; }
+        
+        .post-actions { padding: 14px 18px 8px 18px; display: flex; align-items: center; gap: 15px; }
+        .like-btn { background: none; border: none; cursor: pointer; font-size: 22px; display: flex; align-items: center; gap: 6px; color: var(--text-bright); padding: 0; transition: transform 0.2s; }
+        .like-btn:active { transform: scale(1.2); }
+        .like-btn.liked { color: #f43f5e; }
+        .like-count { font-size: 14px; font-weight: 600; color: var(--text-bright); }
+
+        .post-content-block { padding: 0 18px 18px 18px; }
+        .post-main-title { font-size: 16px; font-weight: 700; margin: 0 0 6px 0; color: #fff; }
+        .post-desc { font-size: 14px; color: #cbd5e1; line-height: 1.5; margin: 0; }
+
+        /* --- РАЗДЕЛ ПРОФИЛЯ --- */
+        .profile-wrapper {
             background: var(--glass-card);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto;
+            padding: 30px;
         }
+        .profile-avatar-setup {
+            display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 25px;
+        }
+        .profile-avatar-preview { width: 100px; height: 100px; border-radius: 50px; object-fit: cover; border: 2px solid var(--neon-purple); background: #110c22; }
         
-        .status-item {
-            display: flex; justify-content: space-between; padding: 16px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 15px;
-        }
-        .status-item:last-of-type { border: none; }
-        .status-lbl { color: var(--text-muted); }
-        .status-val { color: #fff; font-weight: 600; }
-        
-        .action-link { 
-            display: inline-flex; align-items: center; gap: 8px;
-            margin-top: 30px; background: #fff; color: #000; border-radius: 50px;
-            text-decoration: none; font-size: 14px; font-weight: 600; padding: 14px 28px; transition: 0.3s;
-        }
-        .action-link:hover { background: var(--neon-glow); color: #000; transform: translateY(-2px); }
+        /* --- АДМИН-ПАНЕЛЬ --- */
+        .admin-box { background: rgba(20, 10, 35, 0.8); border: 2px solid var(--accent-red); border-radius: 20px; padding: 25px; margin-top: 20px; }
+        .admin-title { color: #f87171; font-weight: 800; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(248,113,113,0.2); padding-bottom: 8px; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .admin-action-btn { padding: 6px 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-delete { background: var(--accent-red); color: white; }
+        .btn-role { background: var(--neon-purple); color: white; margin-right: 5px; }
+
+        .media-preview-box { margin-top: 10px; display: none; text-align: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
+        .media-preview-box img, .media-preview-box video { max-width: 100%; max-height: 150px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-<!-- Рідкий живий фон (Заміна матриці на плавні неонові сфери) -->
 <canvas id="fluid-canvas"></canvas>
 
-<!-- СЕСІЯ ВХОДУ -->
 <div id="auth-section">
     <div class="auth-card">
-        <div class="brand-badge">IZUNAX // CORE</div>
-        <h1>Вхід у Хаб</h1>
-        <p class="subtitle">Синхронізація з ігровою екосистемою Dagon</p>
+        <div class="brand-badge">IZUNAX SYSTEM</div>
+        <h1>Войти в Хаб</h1>
+        <p class="subtitle">Игровая экосистема и медиа-платформа</p>
         
         <div class="tab-container">
-            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Авторизація</button>
-            <button class="tab-btn" id="tab-reg" onclick="setMode('reg')">Реєстрація</button>
+            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Авторизация</button>
+            <button class="tab-btn" id="tab-reg" onclick="setMode('reg')">Регистрация</button>
         </div>
 
         <form id="auth-form">
             <div class="input-group">
-                <label>Пошта оператора (Gmail)</label>
-                <input type="email" id="g-email" placeholder="example@gmail.com" required>
+                <label>Электронная почта (Gmail)</label>
+                <input type="email" id="g-email" placeholder="user@gmail.com" required>
             </div>
 
             <div class="input-group">
-                <label>Крипто-ключ (Пароль)</label>
+                <label>Пароль доступа</label>
                 <input type="password" id="g-pass" placeholder="••••••••••••" required>
             </div>
 
             <div class="input-group" id="nick-group" style="display: none;">
-                <label>Позивний (Ігровий Нік)</label>
-                <input type="text" id="g-login" placeholder="PLAYER_ID">
+                <label>Имя пользователя (Никнейм)</label>
+                <input type="text" id="g-login" placeholder="Игровой_ID">
             </div>
             
             <div id="reg-fields" style="display: none;">
                 <div class="input-group">
-                    <label>Фракційне крило</label>
+                    <label>Фракция</label>
                     <select id="g-faction">
-                        <option value="Синдикат">Теневой Синдикат</option>
-                        <option value="Dagon Explorers">Исследователи Dagon</option>
+                        <option value="Теневой Синдикат">Теневой Синдикат</option>
+                        <option value="Исследователи Dagon">Исследователи Dagon</option>
                         <option value="Кибер Воины">Кибер Воины</option>
                     </select>
                 </div>
-                
                 <div class="input-group">
-                    <label>Додаткова біометрія (Про себе)</label>
-                    <textarea id="g-bio" rows="2" placeholder="Засекречено..."></textarea>
+                    <label>О себе (Статус)</label>
+                    <textarea id="g-bio" rows="2" placeholder="Пара слов о себе..."></textarea>
                 </div>
-                <input type="hidden" id="g-color" value="#a855f7">
             </div>
 
             <button type="submit" class="btn-main" id="submit-btn">
-                <span>Отримати доступ</span> <span>→</span>
+                <span>Получить доступ</span> <span>→</span>
             </button>
         </form>
     </div>
 </div>
 
-<!-- ГОЛОВНИЙ ЕКРАН СТИЛЮ AGENT_AI -->
 <div id="main-hub">
     <nav class="hub-nav">
-        <h2 class="nav-logo">IZUNAX // NEXUS</h2>
+        <h2 class="nav-logo">IZUNAX // HUB</h2>
         <div class="nav-links">
             <button class="nav-btn active" id="btn-tab-feed" onclick="switchTab('feed')">Лента Хаба</button>
-            <button class="nav-btn" id="btn-tab-itc" onclick="switchTab('itc')">Новини ITC.ua</button>
-            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Термінал</button>
+            <button class="nav-btn" id="btn-tab-itc" onclick="switchTab('itc')">Новости Игр</button>
+            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Мой Терминал</button>
         </div>
     </nav>
     
     <div class="hub-container">
-        <!-- Стрічка постів користувачів -->
+        
         <div id="feed-view-container">
-            <div class="section-header"><span>//</span> СТРІЧКА ХАБУ</div>
-            <div id="feed-view" class="feed-grid"></div>
+            <div class="publish-card">
+                <div style="font-weight:700; margin-bottom:12px; font-size:14px; color:var(--neon-glow);">СОЗДАТЬ НОВУЮ ПУБЛИКАЦИЮ</div>
+                <form id="post-form">
+                    <div class="input-group" style="margin-bottom: 12px;">
+                        <input type="text" id="post-title" placeholder="Заголовок публикации..." required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 12px;">
+                        <textarea id="post-text" rows="2" placeholder="Опишите ваши игровые достижения или прикрепите медиа..." required></textarea>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Файл медиа (Фото/Видео)</label>
+                            <input type="file" id="post-file" accept="image/*,video/*" style="padding:6px; font-size:12px;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Или ссылка на медиа</label>
+                            <input type="text" id="post-media-url" placeholder="https://..." style="padding:8px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    <div id="media-preview" class="media-preview-box"></div>
+                    
+                    <button type="submit" class="btn-main" style="padding:10px; font-size:13px; border-radius:12px;">Опубликовать в Ленту</button>
+                </form>
+            </div>
+
+            <div class="section-header">ЛЕНТА ИГРОКОВ</div>
+            <div id="feed-view" class="feed-list"></div>
         </div>
         
-        <!-- Стрічка новин з ITC.ua -->
         <div id="itc-view-container" style="display: none;">
-            <div class="section-header"><span>//</span> ІГРОВІ НОВИНИ (ITC.ua Feed)</div>
-            <div id="itc-view" class="feed-grid"></div>
+            <div class="section-header">ИГРОВЫЕ НОВОСТИ (Парсер ITC.ua)</div>
+            <div id="itc-view" class="feed-list"></div>
+            <div id="itc-loading-trigger" style="text-align:center; padding:20px; color:var(--neon-glow); font-size:13px;">⚡ Загрузка бесконечного потока новостей...</div>
         </div>
         
-        <!-- Картка користувача -->
         <div id="profile-view" style="display: none;">
-            <div class="section-header"><span>//</span> ОПЕРАТИВНИЙ СТАТУС</div>
-            <div class="profile-box">
-                <div class="status-item"><span class="status-lbl">Юзернейм</span><span class="status-val" id="p-login"></span></div>
-                <div class="status-item"><span class="status-lbl">Шлюз зв'язку</span><span class="status-val" id="p-email"></span></div>
-                <div class="status-item"><span class="status-lbl">Альянс / Фракція</span><span class="status-val" id="p-faction"></span></div>
-                <div class="status-item"><span class="status-lbl">Статус прошивки</span><span class="status-val" id="p-bio"></span></div>
-                <div class="status-item"><span class="status-lbl">Рівень доступу</span><span class="status-val" id="p-xp" style="color: var(--neon-glow);"></span></div>
+            <div class="section-header">УПРАВЛЕНИЕ ТЕРМИНАЛОМ</div>
+            
+            <div class="profile-wrapper">
+                <form id="profile-update-form">
+                    <div class="profile-avatar-setup">
+                        <img id="profile-avatar-img" class="profile-avatar-preview" src="" alt="Аватар">
+                        <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;">
+                        <button type="button" class="btn-main" style="max-width:200px; padding:6px 12px; font-size:12px;" onclick="document.getElementById('profile-avatar-file').click()">Изменить аватар</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Имя пользователя (Никнейм)</label>
+                        <input type="text" id="p-edit-login" required>
+                    </div>
+                    <div class="input-group">
+                        <label>О себе / Статус прошивки</label>
+                        <textarea id="p-edit-bio" rows="2"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Текущая фракция</label>
+                        <select id="p-edit-faction">
+                            <option value="Теневой Синдикат">Теневой Синдикат</option>
+                            <option value="Исследователи Dagon">Исследователи Dagon</option>
+                            <option value="Кибер Воины">Кибер Воины</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-main">Сохранить изменения профиля</button>
+                </form>
+
+                <button onclick="logoutSession();" class="btn-main" style="background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); margin-top: 20px; box-shadow: none;">Выйти из аккаунта</button>
+            </div>
+
+            <div id="admin-panel" class="admin-box" style="display:none;">
+                <div class="admin-title">🔒 ПАНЕЛЬ АДМИНИСТРАТОРА // МОДЕРАЦИЯ ЯДРА</div>
                 
-                <div style="display: flex; gap: 20px; align-items: center; margin-top: 10px;">
-                    <a href="publish.html" class="action-link">Створити Пост &nbsp; +</a>
-                    <button onclick="localStorage.removeItem('izunax_user'); location.reload();" class="btn-main" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; max-width: 160px; padding: 13px; font-size: 13px; margin-top: 30px; box-shadow: none;">Деавторизація</button>
-                </div>
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #f87171;">Управление контентом:</div>
+                <div id="admin-posts-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;"></div>
+
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #f87171;">База данных операторов:</div>
+                <div id="admin-users-list" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;"></div>
             </div>
         </div>
+
     </div>
 </div>
 
