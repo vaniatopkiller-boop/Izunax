@@ -1,6 +1,5 @@
-// Модуль атмосферных эффектов и аудио-синтезатора IZUNAX
+// Модуль преміальних аудіо-ефектів та рідкого градієнтного фону IZUNAX
 
-// 1. Расчет рангов
 function calculateRank(xp) {
     if (xp < 30) return "Скрипт-кидди";
     if (xp < 100) return "Нетраннер";
@@ -8,124 +7,77 @@ function calculateRank(xp) {
     return "Архитектор Виртуальности";
 }
 
-// 2. Кибер-синтезатор звука (Web Audio API)
-let audioCtx = null;
+const cyberSounds = {
+    click: new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3'),
+    hover: new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3'),
+    success: new Audio('https://www.soundjay.com/communication/sounds/beep-09.mp3'),
+    error: new Audio('https://www.soundjay.com/communication/sounds/beep-10.mp3')
+};
+
+cyberSounds.click.volume = 0.25;
+cyberSounds.hover.volume = 0.1;
+cyberSounds.success.volume = 0.35;
+cyberSounds.error.volume = 0.4;
 
 function playCyberSound(type) {
-    try {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        const now = audioCtx.currentTime;
-
-        if (type === 'click') {
-            // Короткий механический щелчок терминала
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(900, now);
-            osc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
-            gain.gain.setValueAtTime(0.04, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.04);
-            osc.start(now);
-            osc.stop(now + 0.04);
-        } 
-        else if (type === 'hover') {
-            // Тонкий цифровой blip при наведении
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1400, now);
-            gain.gain.setValueAtTime(0.008, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.02);
-            osc.start(now);
-            osc.stop(now + 0.02);
-        } 
-        else if (type === 'success') {
-            // Восходящий аккорд успешного подключения
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(350, now);
-            osc.frequency.setValueAtTime(520, now + 0.06);
-            osc.frequency.setValueAtTime(780, now + 0.12);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.25);
-            osc.start(now);
-            osc.stop(now + 0.25);
-        } 
-        else if (type === 'error') {
-            // Низкий и жесткий гул системной ошибки
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(160, now);
-            osc.frequency.linearRampToValueAtTime(70, now + 0.3);
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.3);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-    } catch (e) {
-        console.log("Audio Context Error:", e);
+    const sound = cyberSounds[type];
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
     }
 }
-
-// Экспортируем функцию в глобальную видимость для Firebase скриптов
 window.triggerSound = playCyberSound;
 
-// Авто-назначение аудио-триггеров на элементы
 document.addEventListener('click', (e) => {
-    if (e.target.closest('button, .tab-btn, .nav-btn, .action-link')) {
-        playCyberSound('click');
-    }
+    if (e.target.closest('button, .tab-btn, .nav-btn, .action-link')) playCyberSound('click');
 });
-
 document.addEventListener('mouseover', (e) => {
-    if (e.target.closest('button, .tab-btn, .nav-btn, .action-link, .post-card, input, select, textarea')) {
-        playCyberSound('hover');
-    }
+    if (e.target.closest('button, .tab-btn, .nav-btn, .action-link, .post-card, input, select, textarea')) playCyberSound('hover');
 });
 
-// 3. Матричный бэкграунд (Переведен в монохромный синий цвет под новый стиль)
-function initMatrix() {
-    const canvas = document.getElementById('matrix-canvas');
+// Живий рідкий фон (Плаваючі неонові аури в стилі AgentAI)
+function initFluidBackground() {
+    const canvas = document.getElementById('fluid-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    function resizeCanvas() {
+    function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    resize();
+    window.addEventListener('resize', resize);
 
-    const chars = "IZUNAX0101";
-    const fontSize = 14;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops = Array(columns).fill(1);
+    // Створюємо координати для двох плаваючих світлових куль
+    let blobs = [
+        { x: canvas.width * 0.3, y: canvas.height * 0.4, vx: 0.6, vy: 0.4, r: 280, color: 'rgba(147, 51, 234, 0.25)' },
+        { x: canvas.width * 0.7, y: canvas.height * 0.6, vx: -0.4, vy: -0.5, r: 320, color: 'rgba(192, 132, 252, 0.18)' }
+    ];
 
-    function draw() {
-        ctx.fillStyle = "rgba(3, 3, 5, 0.06)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle = "#00a2ff"; // Глубокий синий цвет матрицы под брутализм
-        ctx.font = fontSize + "px monospace";
+        blobs.forEach(b => {
+            b.x += b.vx;
+            b.y += b.vy;
 
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            // Відскок від стінок екрану
+            if (b.x - b.r < 0 || b.x + b.r > canvas.width) b.vx *= -1;
+            if (b.y - b.r < 0 || b.y + b.r > canvas.height) b.vy *= -1;
 
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.985) {
-                drops[i] = 0;
-            }
-            drops[i]++;
-        }
+            let grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+            grad.addColorStop(0, b.color);
+            grad.addColorStop(1, 'rgba(5, 2, 12, 0)');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(animate);
     }
-    setInterval(draw, 35);
+    animate();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    initMatrix();
-});
+document.addEventListener("DOMContentLoaded", initFluidBackground);
