@@ -4,244 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IZUNAX | Gaming Hub & Profile</title>
+    <!-- Используем правильные CDN для старой версии SDK, которая у тебя в проекте -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <style>
-        body {
-            background-color: #0b0c10;
-            color: #c5c6c7;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .gaming-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1f2833;
-            padding-bottom: 20px;
-        }
-        h1 {
-            color: #66fcf1;
-            text-shadow: 0 0 10px #66fcf1;
-            margin: 0;
-        }
-        .btn-back {
-            background: transparent;
-            border: 2px solid #45f3ff;
-            color: #45f3ff;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        .btn-back:hover {
-            background: #45f3ff;
-            color: #000;
-            box-shadow: 0 0 15px #45f3ff;
-        }
-        .game-sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 40px;
-        }
-        @media (max-width: 768px) {
-            .game-sections { grid-template-columns: 1fr; }
-        }
-        .card {
-            background: #1f2833;
-            border: 1px solid #45f3ff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
-        .card h2 {
-            color: #45f3ff;
-            margin-top: 0;
-            border-bottom: 1px solid #45f3ff;
-            padding-bottom: 8px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #66fcf1;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            background: #0b0c10;
-            border: 1px solid #45f3ff;
-            color: #fff;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            background: #66fcf1;
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            width: 100%;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(102,252,241,0.4);
-            margin-top: 10px;
-        }
-        .btn-submit:hover {
-            background: #45f3ff;
-            box-shadow: 0 0 20px #45f3ff;
-        }
-        .profile-view {
-            background: #112233;
-            border: 2px dashed #66fcf1;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #1f2833;
-        }
+        body { background-color: #0b0c10; color: #c5c6c7; font-family: sans-serif; padding: 20px; }
+        .card { background: #1f2833; border: 1px solid #45f3ff; border-radius: 8px; padding: 20px; max-width: 500px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #66fcf1; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: #0b0c10; border: 1px solid #45f3ff; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        .btn-submit { background: #66fcf1; color: #000; border: none; padding: 12px 20px; width: 100%; font-weight: bold; cursor: pointer; }
+        #error-monitor { margin-top: 20px; padding: 10px; background: #500; color: #fff; border-radius: 4px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="gaming-container">
-    <header>
-        <h1>IZUNAX GAMING SYSTEM</h1>
-        <a href="index.html" class="btn-back">← На главную</a>
-    </header>
+<div class="card">
+    <h2>Регистрация игрового профиля</h2>
+    <form id="mega-game-form">
+        <div class="form-group">
+            <label>Логин</label>
+            <input type="text" id="game-login" required>
+        </div>
+        <div class="form-group">
+            <label>Gmail</label>
+            <input type="email" id="game-email" required>
+        </div>
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="game-password" required>
+        </div>
+        <div class="form-group">
+            <label>Фракция</label>
+            <select id="game-faction">
+                <option value="Shadow Syndicate">Shadow Syndicate</option>
+                <option value="Cyber Warriors">Cyber Warriors</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit">Сохранить в Firebase</button>
+    </form>
 
-    <main class="game-sections">
-        <!-- ЛЕВАЯ ЧАСТЬ: РЕГИСТРАЦИЯ И НАСТРОЙКА -->
-        <section class="card">
-            <h2>Регистрация и Настройка Профиля</h2>
-            <form id="mega-game-form">
-                <div class="form-group">
-                    <label>Игровой Логин / Steam ID</label>
-                    <input type="text" id="game-login" required placeholder="Например, VaniaTopKiller">
-                </div>
-                <div class="form-group">
-                    <label>Электронная почта (Gmail)</label>
-                    <input type="email" id="game-email" required placeholder="example@gmail.com">
-                </div>
-                <div class="form-group">
-                    <label>Пароль аккаунта</label>
-                    <input type="password" id="game-password" required placeholder="••••••••">
-                </div>
-
-                <h3 style="color:#66fcf1; margin-top:25px;">Кастомизация Игрока</h3>
-                
-                <div class="form-group">
-                    <label>Игровая Фракция / Клан</label>
-                    <select id="game-faction">
-                        <option value="Shadow Syndicate">Теневой Синдикат (Shadow Syndicate)</option>
-                        <option value="Cyber Warriors">Кибер Воины (Cyber Warriors)</option>
-                        <option value="Chaos Order">Орден Хаоса (Chaos Order)</option>
-                        <option value="走人 IZUNAX Team">Команда IZUNAX Devs</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Основной игровой класс (Роль)</label>
-                    <select id="game-role">
-                        <option value="Carry / Damage Dealer">Штурмовик / Кэрри</option>
-                        <option value="Sniper / Recon">Снайпер / Разведчик</option>
-                        <option value="Support / Tech">Техник / Саппорт</option>
-                        <option value="Infiltrator / Hacker">Хакер / Инфильтратор</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Предпочитаемый цвет интерфейса (Неон)</label>
-                    <input type="color" id="game-color" value="#66fcf1">
-                </div>
-
-                <div class="form-group">
-                    <label>О себе / Игровой статус</label>
-                    <textarea id="game-bio" rows="3" placeholder="Пара слов о твоих скиллах..."></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Сохранить всё в Облако Google</button>
-            </form>
-        </section>
-
-        <!-- ПРАВАЯ ЧАСТЬ: ДИНАМИЧЕСКИЙ ПРОФИЛЬ -->
-        <section class="card">
-            <h2>Ваша Игровая Карта Живьем</h2>
-            <div id="profile-status">Введите данные слева и нажмите кнопку для генерации профиля.</div>
-            
-            <div id="live-profile" class="profile-view" style="display: none;">
-                <h3 id="view-login" style="margin-top:0; color:#fff;"></h3>
-                <div class="stat-row"><span>Gmail:</span> <span id="view-email" style="color:#66fcf1;"></span></div>
-                <div class="stat-row"><span>Фракция:</span> <span id="view-faction"></span></div>
-                <div class="stat-row"><span>Роль в бою:</span> <span id="view-role"></span></div>
-                <div class="stat-row"><span>Цветовой код:</span> <span id="view-color"></span></div>
-                <div style="margin-top:15px;">
-                    <strong style="font-size:12px; color:#66fcf1;">БИОГРАФИЯ:</strong>
-                    <p id="view-bio" style="font-style:italic; margin-top:5px; font-size:14px;"></p>
-                </div>
-            </div>
-        </section>
-    </main>
+    <!-- Монитор ошибок -->
+    <div id="error-monitor"></div>
 </div>
 
 <script>
+    // Проверяем, загрузился ли конфиг и база данных
+    setTimeout(() => {
+        const monitor = document.getElementById('error-monitor');
+        if (!window.db) {
+            monitor.style.display = 'block';
+            monitor.innerText = "КРИТИЧЕСКАЯ ОШИБКА: window.db не найден! Проверь, правильно ли подключен firebase-config.js";
+        }
+    }, 2000);
+
     document.getElementById('mega-game-form').addEventListener('submit', function(e) {
         e.preventDefault();
+        const monitor = document.getElementById('error-monitor');
+        monitor.style.display = 'none';
 
         const login = document.getElementById('game-login').value;
         const email = document.getElementById('game-email').value;
         const password = document.getElementById('game-password').value;
         const faction = document.getElementById('game-faction').value;
-        const role = document.getElementById('game-role').value;
-        const color = document.getElementById('game-color').value;
-        const bio = document.getElementById('game-bio').value;
 
+        if (!window.db) {
+            alert("Ошибка: База данных не инициализирована.");
+            return;
+        }
+
+        // Пробуем отправить данные
         window.db.collection("game_accounts").add({
             game_login: login,
             gmail: email,
-            password: password, 
-            customization: {
-                faction: faction,
-                role: role,
-                neon_color: color,
-                bio: bio
-            },
+            password: password,
+            faction: faction,
             createdAt: new Date()
         })
         .then((docRef) => {
-            alert('Супер! Все настройки сохранены в Firebase.');
-            
-            document.getElementById('profile-status').style.display = 'none';
-            const profileDiv = document.getElementById('live-profile');
-            profileDiv.style.display = 'block';
-            profileDiv.style.borderColor = color;
-
-            document.getElementById('view-login').innerText = "🎮 " + login;
-            document.getElementById('view-email').innerText = email;
-            document.getElementById('view-faction').innerText = faction;
-            document.getElementById('view-role').innerText = role;
-            document.getElementById('view-color').innerText = color;
-            document.getElementById('view-color').style.color = color;
-            document.getElementById('view-bio').innerText = bio || "Не указано";
+            alert('Успех! Данные в базе. ID: ' + docRef.id);
+            location.reload(); // Перезагрузим, чтобы увидеть обновления
         })
         .catch((error) => {
-            console.error("Ошибка записи: ", error);
-            alert("Ошибка Firebase! Проверьте вкладку Rules в консоли. Текст ошибки: " + error.message);
+            console.error(error);
+            monitor.style.display = 'block';
+            monitor.innerText = "Ошибка Firebase Firestore: " + error.message;
         });
     });
 </script>
