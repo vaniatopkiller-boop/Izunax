@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IZUNAX | Cyber Hub</title>
     
+    <!-- Внешние библиотеки Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
@@ -69,10 +70,9 @@
         }
         .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
 
-        /* ----- ГЛАВНЫЙ ХАБ (Скрыт по умолчанию) ----- */
+        /* ----- ГЛАВНЫЙ ХАБ ----- */
         #main-hub { display: none; }
 
-        /* Навигация */
         .hub-nav {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(15, 17, 26, 0.9); border-bottom: 1px solid var(--neon-cyan);
@@ -91,9 +91,7 @@
         .nav-btn-profile { border: 1px solid var(--neon-cyan); padding: 5px 15px; color: var(--neon-cyan); }
         .nav-btn-profile:hover { background: var(--neon-cyan); color: #000; }
 
-        /* Контентная сетка */
         .hub-container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        
         .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         
         .post-card {
@@ -106,11 +104,10 @@
         .post-title { color: #fff; font-size: 18px; margin: 0 0 10px 0; }
         .post-text { color: #aaa; font-size: 14px; line-height: 1.5; }
         
-        /* Видео заглушки */
         .video-box { width: 100%; height: 180px; background: #000; display: flex; justify-content: center; align-items: center; border: 1px dashed #444; margin-bottom: 15px;}
         .play-btn { width: 50px; height: 50px; background: rgba(255,0,255,0.2); border: 2px solid var(--neon-pink); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--neon-pink); cursor: pointer; }
 
-        /* ----- ПРОФИЛЬ ОВЕРЛЕЙ ----- */
+        /* ----- ПРОФИЛЬ ----- */
         #profile-view { display: none; margin-top: 20px; }
         .profile-card {
             background: var(--panel-bg); border: 1px solid var(--neon-cyan);
@@ -126,6 +123,7 @@
 </head>
 <body>
 
+<!-- ЭКРАН ВХОДА -->
 <div id="auth-section">
     <div class="auth-card">
         <h1>IZUNAX TERMINAL</h1>
@@ -153,6 +151,7 @@
     </div>
 </div>
 
+<!-- ГЛАВНЫЙ ХАБ -->
 <div id="main-hub">
     <nav class="hub-nav">
         <h2 class="nav-logo">IZUNAX // HUB</h2>
@@ -165,11 +164,12 @@
 
     <div class="hub-container">
         
+        <!-- ЛЕНТА ПОСТОВ -->
         <div id="feed-view" class="feed-grid">
             <div class="post-card">
                 <div class="post-header"><span>@admin</span> <span>Сегодня</span></div>
                 <h3 class="post-title">Патч-ноут сети</h3>
-                <p class="post-text">Система аутентификации работает стабильно. Базы данных Google Firestore успешно интегрированы в проект IZUNAX.</p>
+                <p class="post-text">Система аутентификации работает стабильно. Вся скриптовая логика успешно перенесена во внешний кластер архитектуры.</p>
             </div>
             <div class="post-card">
                 <div class="post-header"><span>@dagon_mapper</span> <span>Вчера</span></div>
@@ -183,6 +183,7 @@
             </div>
         </div>
 
+        <!-- ВИДЕО АРХИВЫ -->
         <div id="videos-view" class="feed-grid" style="display: none;">
             <div class="post-card">
                 <div class="video-box"><div class="play-btn">▶</div></div>
@@ -196,6 +197,7 @@
             </div>
         </div>
 
+        <!-- ПРОФИЛЬ -->
         <div id="profile-view">
             <div class="profile-card" id="p-card-body">
                 <div class="avatar-glitch" id="p-avatar">X</div>
@@ -218,72 +220,8 @@
     </div>
 </div>
 
-<script>
-    // Конфиг Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAY58C_0NckfmkNHLsoB_eeKPcsBuB-W04",
-        authDomain: "izunax-c1707.firebaseapp.com",
-        projectId: "izunax-c1707",
-        storageBucket: "izunax-c1707.firebasestorage.app",
-        messagingSenderId: "755797664743",
-        appId: "1:755797664743:web:2eaeff896c9df27075d342"
-    };
-
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const localDb = firebase.firestore();
-
-    // Логика переключения вкладок в Хабе
-    function switchTab(tabId) {
-        document.getElementById('feed-view').style.display = 'none';
-        document.getElementById('videos-view').style.display = 'none';
-        document.getElementById('profile-view').style.display = 'none';
-        
-        document.getElementById(tabId + '-view').style.display = (tabId === 'feed' || tabId === 'videos') ? 'grid' : 'block';
-    }
-
-    // Обработка формы
-    document.getElementById('gamer-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const data = {
-            login: document.getElementById('g-login').value,
-            email: document.getElementById('g-email').value,
-            password: document.getElementById('g-pass').value,
-            faction: document.getElementById('g-faction').value,
-            color: document.getElementById('g-color').value,
-            bio: document.getElementById('g-bio').value || "Данные засекречены",
-            createdAt: new Date()
-        };
-
-        // Отправка в базу
-        localDb.collection("game_accounts").add(data)
-        .then(() => {
-            // Скрываем авторизацию, показываем Хаб
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('main-hub').style.display = 'block';
-            
-            // Заполняем профиль
-            document.getElementById('p-login').innerText = data.login;
-            document.getElementById('p-email').innerText = data.email;
-            document.getElementById('p-faction').innerText = data.faction;
-            document.getElementById('p-bio').innerText = data.bio;
-            
-            // Применяем выбранный цвет
-            const pAvatar = document.getElementById('p-avatar');
-            pAvatar.style.borderColor = data.color;
-            pAvatar.style.color = data.color;
-            pAvatar.style.boxShadow = `0 0 20px ${data.color}`;
-            document.getElementById('p-card-body').style.borderColor = data.color;
-            
-            alert('Синхронизация успешна. Добро пожаловать в Хаб!');
-        })
-        .catch((err) => {
-            alert("Ошибка подключения к серверу: " + err.message);
-        });
-    });
-</script>
+<!-- ПОДКЛЮЧАЕМ НАШ ОТДЕЛЬНЫЙ СКРИПТ -->
+<script src="gaming.js"></script>
 
 </body>
 </html>
