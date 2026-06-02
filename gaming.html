@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IZUNAX // Игровой Медиа-Хаб</title>
+    <title>IZUNAX // Premium Gaming Terminal</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -25,7 +25,7 @@
         body { 
             background: var(--bg-deep); 
             color: var(--text-bright); 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0; 
             padding: 0;
             overflow-x: hidden;
@@ -33,94 +33,58 @@
 
         #fluid-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            opacity: 0.35;
-            pointer-events: none;
+            top: 0; left: 0; z-index: -1;
+            opacity: 0.35; pointer-events: none;
         }
 
-        /* --- СТИЛЬ АВТОРИЗАЦИИ --- */
+        /* --- АВТОРIЗАЦИЯ --- */
         #auth-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
         }
 
         .auth-card {
-            background: var(--glass-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 35px;
-            width: 100%;
-            max-width: 420px;
+            background: var(--glass-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 35px; width: 100%; max-width: 420px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
 
         .brand-badge {
-            display: inline-block;
-            background: rgba(168, 85, 247, 0.2);
-            color: var(--neon-glow);
-            padding: 6px 12px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            display: inline-block; background: rgba(168, 85, 247, 0.2); color: var(--neon-glow);
+            padding: 6px 12px; border-radius: 50px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.3);
         }
 
-        h1 { 
-            font-size: 32px; 
-            font-weight: 800; 
+        h1, h2, h3 { 
             background: linear-gradient(135deg, #fff 40%, var(--neon-glow) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0 0 8px 0;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 15px 0;
         }
 
-        p.subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; margin-top: 0; }
-        
         .tab-container { 
-            display: flex; 
-            background: rgba(0, 0, 0, 0.4); 
-            padding: 4px; 
-            border-radius: 12px; 
-            margin-bottom: 22px; 
-            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 12px; margin-bottom: 22px; border: 1px solid rgba(255,255,255,0.05);
         }
         .tab-btn { 
-            flex: 1; padding: 10px; background: transparent; border: none;
-            color: var(--text-muted); cursor: pointer; font-family: inherit; font-weight: 600;
-            font-size: 13px; border-radius: 8px; transition: all 0.2s ease;
+            flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-muted); 
+            cursor: pointer; font-weight: 600; font-size: 13px; border-radius: 8px; transition: 0.2s;
         }
         .tab-btn.active { background: rgba(168, 85, 247, 0.3); color: #fff; }
 
-        .input-group { margin-bottom: 18px; position: relative; }
+        .input-group { margin-bottom: 18px; }
         .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
         
         input, select, textarea { 
             width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.4); color: #fff; 
-            border: 1px solid var(--glass-border); border-radius: 12px; font-family: inherit;
-            font-size: 14px; transition: all 0.3s;
+            border: 1px solid var(--glass-border); border-radius: 12px; font-family: inherit; font-size: 14px; transition: 0.3s;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--neon-purple); outline: none; box-shadow: 0 0 12px rgba(168, 85, 247, 0.2); }
 
         .btn-main {
             width: 100%; padding: 14px; background: linear-gradient(135deg, var(--neon-purple) 0%, #7c3aed 100%); border: none;
-            color: #fff; font-weight: 600; cursor: pointer; border-radius: 50px;
-            font-family: inherit; transition: all 0.2s; font-size: 14px;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.25);
+            color: #fff; font-weight: 600; cursor: pointer; border-radius: 50px; font-size: 14px;
+            display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(168, 85, 247, 0.25); transition: 0.2s;
         }
         .btn-main:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(168, 85, 247, 0.35); }
 
-        /* --- ГЛАВНЫЙ ИНТЕРФЕЙС ХАБА --- */
+        /* --- ГЛАВНЫЙ ЭКРАН --- */
         #main-hub { display: none; }
         
         .hub-nav { 
@@ -130,82 +94,55 @@
         }
         .nav-logo { font-size: 20px; font-weight: 800; background: linear-gradient(90deg, #fff, var(--neon-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
         .nav-links { display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
-        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; padding: 8px 16px; font-weight: 600; font-size: 13px; border-radius: 50px; transition: 0.2s; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px 16px; font-weight: 600; font-size: 13px; border-radius: 50px; transition: 0.2s; }
         .nav-btn.active { color: #fff; background: var(--neon-purple); }
         
-        .hub-container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+        .hub-container { max-width: 700px; margin: 30px auto; padding: 0 15px; padding-bottom: 60px; }
         
-        .section-header {
-            font-size: 22px; font-weight: 700; margin-bottom: 20px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        /* --- ЛЕНТА В СТИЛЕ ИНСТАГРАМ --- */
-        .publish-card {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-
+        /* --- ИНСТАГРАМ ЛЕНТА --- */
         .feed-list { display: flex; flex-direction: column; gap: 25px; }
         
         .insta-post { 
-            background: var(--glass-card); 
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: var(--glass-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .post-author-bar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .author-info { display: flex; align-items: center; gap: 10px; }
-        .author-avatar { width: 36px; height: 36px; border-radius: 50px; object-fit: cover; border: 1px solid var(--neon-purple); background: #110c22; }
-        .author-name { font-weight: 600; font-size: 14px; }
+        .author-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--neon-purple); background: #110c22; }
+        .author-name { font-weight: 600; font-size: 14px; color: #fff; }
         .post-time { font-size: 11px; color: var(--text-muted); }
 
-        .post-media-container { width: 100%; background: #000; position: relative; display: flex; justify-content: center; align-items: center; }
-        .post-media-container img, .post-media-container video { width: 100%; max-height: 500px; object-fit: contain; display: block; }
+        .post-media-container { width: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
+        .post-media-container img, .post-media-container video { width: 100%; max-height: 450px; object-fit: contain; display: block; }
         
-        .post-actions { padding: 14px 18px 8px 18px; display: flex; align-items: center; gap: 15px; }
-        .like-btn { background: none; border: none; cursor: pointer; font-size: 22px; display: flex; align-items: center; gap: 6px; color: var(--text-bright); padding: 0; transition: transform 0.2s; }
-        .like-btn:active { transform: scale(1.2); }
+        .post-actions { padding: 12px 18px 6px 18px; display: flex; align-items: center; gap: 15px; }
+        .like-btn { background: none; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; gap: 6px; color: var(--text-bright); padding: 0; }
         .like-btn.liked { color: #f43f5e; }
-        .like-count { font-size: 14px; font-weight: 600; color: var(--text-bright); }
 
         .post-content-block { padding: 0 18px 18px 18px; }
-        .post-main-title { font-size: 16px; font-weight: 700; margin: 0 0 6px 0; color: #fff; }
-        .post-desc { font-size: 14px; color: #cbd5e1; line-height: 1.5; margin: 0; }
+        .post-main-title { font-size: 15px; font-weight: 700; margin: 0 0 4px 0; color: #fff; }
+        .post-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin: 0; }
 
-        /* --- РАЗДЕЛ ПРОФИЛЯ --- */
+        /* --- КАРТОЧКА ПРОФИЛЯ С НАСТРОЙКАМИ И ПУБЛИКАЦИЕЙ --- */
         .profile-wrapper {
-            background: var(--glass-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 30px;
+            background: var(--glass-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; margin-bottom: 25px;
         }
-        .profile-avatar-setup {
-            display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 25px;
-        }
-        .profile-avatar-preview { width: 100px; height: 100px; border-radius: 50px; object-fit: cover; border: 2px solid var(--neon-purple); background: #110c22; }
-        
-        /* --- АДМИН-ПАНЕЛЬ --- */
-        .admin-box { background: rgba(20, 10, 35, 0.8); border: 2px solid var(--accent-red); border-radius: 20px; padding: 25px; margin-top: 20px; }
-        .admin-title { color: #f87171; font-weight: 800; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(248,113,113,0.2); padding-bottom: 8px; }
-        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .admin-action-btn { padding: 6px 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 12px; }
-        .btn-delete { background: var(--accent-red); color: white; }
-        .btn-role { background: var(--neon-purple); color: white; margin-right: 5px; }
+        .profile-avatar-setup { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .profile-avatar-preview { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-purple); }
 
-        .media-preview-box { margin-top: 10px; display: none; text-align: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
-        .media-preview-box img, .media-preview-box video { max-width: 100%; max-height: 150px; border-radius: 6px; }
+        .publish-box {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 16px; padding: 20px; margin-top: 25px;
+        }
+
+        /* --- АДМИНКА --- */
+        .admin-box { background: rgba(25, 10, 40, 0.85); border: 2px solid var(--accent-red); border-radius: 20px; padding: 20px; margin-top: 25px; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .admin-action-btn { padding: 4px 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 11px; margin-left: 4px;}
+        .btn-delete { background: var(--accent-red); color: white; }
+        .btn-role { background: var(--neon-purple); color: white; }
     </style>
 </head>
 <body>
@@ -214,145 +151,118 @@
 
 <div id="auth-section">
     <div class="auth-card">
-        <div class="brand-badge">IZUNAX SYSTEM</div>
-        <h1>Войти в Хаб</h1>
-        <p class="subtitle">Игровая экосистема и медиа-платформа</p>
+        <div class="brand-badge">IZUNAX ENGINE</div>
+        <h1>Вход в Терминал</h1>
+        <p class="subtitle" style="color: var(--text-muted); font-size: 13px;">Синхронизация профиля разработчика</p>
         
         <div class="tab-container">
-            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Авторизация</button>
+            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Вход</button>
             <button class="tab-btn" id="tab-reg" onclick="setMode('reg')">Регистрация</button>
         </div>
 
         <form id="auth-form">
             <div class="input-group">
-                <label>Электронная почта (Gmail)</label>
-                <input type="email" id="g-email" placeholder="user@gmail.com" required>
+                <label>Почта (Только Gmail)</label>
+                <input type="email" id="g-email" placeholder="identity@gmail.com" required>
             </div>
-
             <div class="input-group">
-                <label>Пароль доступа</label>
-                <input type="password" id="g-pass" placeholder="••••••••••••" required>
+                <label>Крипто-пароль</label>
+                <input type="password" id="g-pass" placeholder="••••••••" required>
             </div>
-
             <div class="input-group" id="nick-group" style="display: none;">
-                <label>Имя пользователя (Никнейм)</label>
-                <input type="text" id="g-login" placeholder="Игровой_ID">
+                <label>Имя оператора (Ник)</label>
+                <input type="text" id="g-login" placeholder="USER_ID">
             </div>
-            
             <div id="reg-fields" style="display: none;">
                 <div class="input-group">
-                    <label>Фракция</label>
+                    <label>Фракционное крыло</label>
                     <select id="g-faction">
                         <option value="Теневой Синдикат">Теневой Синдикат</option>
                         <option value="Исследователи Dagon">Исследователи Dagon</option>
                         <option value="Кибер Воины">Кибер Воины</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>О себе (Статус)</label>
-                    <textarea id="g-bio" rows="2" placeholder="Пара слов о себе..."></textarea>
-                </div>
             </div>
-
-            <button type="submit" class="btn-main" id="submit-btn">
-                <span>Получить доступ</span> <span>→</span>
-            </button>
+            <button type="submit" class="btn-main" id="submit-btn">Войти в систему</button>
         </form>
     </div>
 </div>
 
 <div id="main-hub">
     <nav class="hub-nav">
-        <h2 class="nav-logo">IZUNAX // HUB</h2>
+        <h2 class="nav-logo">IZUNAX // CORE</h2>
         <div class="nav-links">
             <button class="nav-btn active" id="btn-tab-feed" onclick="switchTab('feed')">Лента Хаба</button>
-            <button class="nav-btn" id="btn-tab-itc" onclick="switchTab('itc')">Новости Игр</button>
-            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Мой Терминал</button>
+            <button class="nav-btn" id="btn-tab-itc" onclick="switchTab('itc')">Инфо-Поток</button>
+            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Профиль</button>
         </div>
     </nav>
     
     <div class="hub-container">
         
         <div id="feed-view-container">
-            <div class="publish-card">
-                <div style="font-weight:700; margin-bottom:12px; font-size:14px; color:var(--neon-glow);">СОЗДАТЬ НОВУЮ ПУБЛИКАЦИЮ</div>
-                <form id="post-form">
-                    <div class="input-group" style="margin-bottom: 12px;">
-                        <input type="text" id="post-title" placeholder="Заголовок публикации..." required>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 12px;">
-                        <textarea id="post-text" rows="2" placeholder="Опишите ваши игровые достижения или прикрепите медиа..." required></textarea>
-                    </div>
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
-                        <div>
-                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Файл медиа (Фото/Видео)</label>
-                            <input type="file" id="post-file" accept="image/*,video/*" style="padding:6px; font-size:12px;">
-                        </div>
-                        <div>
-                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Или ссылка на медиа</label>
-                            <input type="text" id="post-media-url" placeholder="https://..." style="padding:8px; font-size:12px;">
-                        </div>
-                    </div>
-
-                    <div id="media-preview" class="media-preview-box"></div>
-                    
-                    <button type="submit" class="btn-main" style="padding:10px; font-size:13px; border-radius:12px;">Опубликовать в Ленту</button>
-                </form>
-            </div>
-
-            <div class="section-header">ЛЕНТА ИГРОКОВ</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// ИГРОВАЯ МЕДИАЛЕНТА</h3>
             <div id="feed-view" class="feed-list"></div>
         </div>
         
         <div id="itc-view-container" style="display: none;">
-            <div class="section-header">ИГРОВЫЕ НОВОСТИ (Парсер ITC.ua)</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// МИРОВЫЕ ЖИВЫЕ НОВОСТИ (БЕЗ ПОВТОРОВ)</h3>
             <div id="itc-view" class="feed-list"></div>
-            <div id="itc-loading-trigger" style="text-align:center; padding:20px; color:var(--neon-glow); font-size:13px;">⚡ Загрузка бесконечного потока новостей...</div>
+            <div id="news-loader" style="text-align:center; padding:15px; color:var(--neon-glow); font-size:12px;">⚡ Синхронизация новых пакетов данных...</div>
         </div>
         
         <div id="profile-view" style="display: none;">
-            <div class="section-header">УПРАВЛЕНИЕ ТЕРМИНАЛОМ</div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">// ПАНЕЛЬ ОПЕРАТОРА</h3>
             
             <div class="profile-wrapper">
                 <form id="profile-update-form">
                     <div class="profile-avatar-setup">
-                        <img id="profile-avatar-img" class="profile-avatar-preview" src="" alt="Аватар">
+                        <img id="profile-avatar-img" class="profile-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><circle cx='50' cy='50' r='50' fill='%23251647'/></svg>">
                         <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;">
-                        <button type="button" class="btn-main" style="max-width:200px; padding:6px 12px; font-size:12px;" onclick="document.getElementById('profile-avatar-file').click()">Изменить аватар</button>
+                        <button type="button" class="btn-main" style="max-width:160px; padding:6px; font-size:11px;" onclick="document.getElementById('profile-avatar-file').click()">Сменить аватар</button>
                     </div>
 
                     <div class="input-group">
-                        <label>Имя пользователя (Никнейм)</label>
+                        <label>Никнейм ядра</label>
                         <input type="text" id="p-edit-login" required>
                     </div>
                     <div class="input-group">
-                        <label>О себе / Статус прошивки</label>
-                        <textarea id="p-edit-bio" rows="2"></textarea>
-                    </div>
-                    <div class="input-group">
-                        <label>Текущая фракция</label>
+                        <label>Боевая Фракция</label>
                         <select id="p-edit-faction">
                             <option value="Теневой Синдикат">Теневой Синдикат</option>
                             <option value="Исследователи Dagon">Исследователи Dagon</option>
                             <option value="Кибер Воины">Кибер Воины</option>
                         </select>
                     </div>
-
-                    <button type="submit" class="btn-main">Сохранить изменения профиля</button>
+                    <button type="submit" class="btn-main" style="padding:10px; font-size:13px;">Сохранить конфигурацию</button>
                 </form>
 
-                <button onclick="logoutSession();" class="btn-main" style="background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); margin-top: 20px; box-shadow: none;">Выйти из аккаунта</button>
+                <div class="publish-box">
+                    <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--neon-glow);">НОВАЯ ПУБЛИКАЦИЯ В ЛЕНТУ</h4>
+                    <form id="post-form">
+                        <input type="text" id="post-title" placeholder="Тема релиза..." required style="margin-bottom:10px;">
+                        <textarea id="post-text" rows="2" placeholder="Текст описания (Инстаграм-стайл)..." required style="margin-bottom:10px;"></textarea>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <div>
+                                <label style="font-size:10px; color:var(--text-muted);">Загрузить файл</label>
+                                <input type="file" id="post-file" accept="image/*,video/*" style="padding:5px; font-size:11px;">
+                            </div>
+                            <div>
+                                <label style="font-size:10px; color:var(--text-muted);">Или URL-ссылка</label>
+                                <input type="text" id="post-media-url" placeholder="https://..." style="padding:7px; font-size:11px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-main" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding:10px; font-size:12px; box-shadow:none;">Опубликовать пост</button>
+                    </form>
+                </div>
+
+                <button onclick="logoutSession();" class="btn-main" style="background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); margin-top: 20px; box-shadow: none; padding: 10px; font-size: 13px;">Выйти из терминала</button>
             </div>
 
             <div id="admin-panel" class="admin-box" style="display:none;">
-                <div class="admin-title">🔒 ПАНЕЛЬ АДМИНИСТРАТОРА // МОДЕРАЦИЯ ЯДРА</div>
-                
-                <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #f87171;">Управление контентом:</div>
-                <div id="admin-posts-list" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;"></div>
-
-                <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #f87171;">База данных операторов:</div>
-                <div id="admin-users-list" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;"></div>
+                <div style="color:#f87171; font-weight:800; font-size:13px; margin-bottom:10px; letter-spacing:1px;">🔒 МОДЕРАЦИЯ СЕРВЕРА ЯДРА</div>
+                <div id="admin-posts-list" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 8px;"></div>
             </div>
         </div>
 
