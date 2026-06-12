@@ -48,6 +48,10 @@ const bodies = [
 ];
 
 function rand(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) {
+    console.warn('[H Archives] rand() called with empty or invalid array');
+    return undefined;
+  }
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -84,11 +88,25 @@ function seedDocs() {
 }
 
 function el(id) {
-  return document.getElementById(id);
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`[H Archives] Element #${id} not found`);
+  }
+  return element;
+}
+
+function listen(id, event, handler) {
+  const element = el(id);
+  if (element) {
+    element.addEventListener(event, handler);
+  } else {
+    console.error(`[H Archives] Cannot attach "${event}" listener — #${id} missing`);
+  }
 }
 
 function setSession(text) {
-  el('sessionState').textContent = `Сесія: ${text}`;
+  const sessionEl = el('sessionState');
+  if (sessionEl) sessionEl.textContent = `Сесія: ${text}`;
 }
 
 function applyThemeToggles() {
@@ -109,6 +127,10 @@ function redactText(text) {
 function renderDocs() {
   const grid = el('archiveGrid');
   const template = el('docTemplate');
+  if (!grid || !template) {
+    console.error('[H Archives] Archive grid or doc template not found, cannot render documents');
+    return;
+  }
   const fragment = document.createDocumentFragment();
   const q = state.filters.search.trim().toLowerCase();
 
@@ -155,23 +177,39 @@ function renderDocs() {
 }
 
 function openDoc(doc) {
-  el('modalType').textContent = categories[doc.type];
-  el('modalId').textContent = doc.id;
-  el('modalTitle').textContent = doc.title;
-  el('modalBody').innerHTML = redactText(doc.body + ' ' + rand(bodies) + ' ' + rand(bodies));
-  el('docModal').classList.remove('hidden');
+  if (!doc) {
+    console.error('[H Archives] openDoc() called without a document');
+    return;
+  }
+  const modalType = el('modalType');
+  const modalId = el('modalId');
+  const modalTitle = el('modalTitle');
+  const modalBody = el('modalBody');
+  const docModal = el('docModal');
+  if (!modalType || !modalId || !modalTitle || !modalBody || !docModal) {
+    console.error('[H Archives] Modal elements missing, cannot open document');
+    return;
+  }
+  modalType.textContent = categories[doc.type] || doc.type;
+  modalId.textContent = doc.id;
+  modalTitle.textContent = doc.title;
+  modalBody.innerHTML = redactText(doc.body + ' ' + rand(bodies) + ' ' + rand(bodies));
+  docModal.classList.remove('hidden');
 }
 
 function closeModal() {
-  el('docModal').classList.add('hidden');
+  const modal = el('docModal');
+  if (modal) modal.classList.add('hidden');
 }
 
 function setMode(mode) {
   state.mode = mode;
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.mode === mode));
-  el('guestForm').classList.toggle('hidden', mode !== 'guest');
-  el('orgForm').classList.toggle('hidden', mode !== 'org');
+  const guestForm = el('guestForm');
+  const orgForm = el('orgForm');
+  if (guestForm) guestForm.classList.toggle('hidden', mode !== 'guest');
+  if (orgForm) orgForm.classList.toggle('hidden', mode !== 'org');
 }
 
 function setLoggedIn(loggedIn, role = 'гість') {
@@ -183,8 +221,18 @@ function setLoggedIn(loggedIn, role = 'гість') {
   }
 }
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function renderFiles() {
   const container = el('filePreview');
+  if (!container) {
+    console.error('[H Archives] File preview container not found');
+    return;
+  }
   if (!state.files.length) {
     container.className = 'preview-empty';
     container.textContent = 'Поки що файлів немає.';
@@ -194,10 +242,10 @@ function renderFiles() {
   container.innerHTML = state.files.map((file) => `
     <div class="file-item">
       <div>
-        <strong>${file.name}</strong>
-        <span>${file.kind} • ${file.size}</span>
+        <strong>${escapeHtml(file.name)}</strong>
+        <span>${escapeHtml(file.kind)} • ${escapeHtml(file.size)}</span>
       </div>
-      <div class="badge">${file.tag}</div>
+      <div class="badge">${escapeHtml(file.tag)}</div>
     </div>
   `).join('');
 }
@@ -210,16 +258,22 @@ function bytesToHuman(bytes) {
 
 /* Noise canvas */
 const canvas = el('noise');
-const ctx = canvas.getContext('2d', { alpha: true });
+const ctx = canvas ? canvas.getContext('2d', { alpha: true }) : null;
 let w = 0, h = 0, raf = 0;
 
+if (!canvas || !ctx) {
+  console.error('[H Archives] Noise canvas or 2D context not available — noise effect disabled');
+}
+
 function resizeCanvas() {
+  if (!canvas) return;
   w = canvas.width = window.innerWidth * devicePixelRatio;
   h = canvas.height = window.innerHeight * devicePixelRatio;
   canvas.style.width = `${window.innerWidth}px`;
   canvas.style.height = `${window.innerHeight}px`;
 }
 function drawNoise() {
+  if (!ctx) return;
   if (state.toggles.noise) {
     const imageData = ctx.createImageData(w, h);
     const data = imageData.data;
@@ -239,6 +293,7 @@ function drawNoise() {
 
 /* Events */
 document.addEventListener('DOMContentLoaded', () => {
+  try {
   seedDocs();
   renderDocs();
   renderFiles();
@@ -247,33 +302,40 @@ document.addEventListener('DOMContentLoaded', () => {
   resizeCanvas();
   drawNoise();
 
-  el('openLogin').addEventListener('click', () => {
-    el('loginPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  listen('openLogin', 'click', () => {
+    const panel = el('loginPanel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setMode('org');
   });
 
-  el('guestModeBtn').addEventListener('click', () => setMode('guest'));
-  el('orgModeBtn').addEventListener('click', () => setMode('org'));
+  listen('guestModeBtn', 'click', () => setMode('guest'));
+  listen('orgModeBtn', 'click', () => setMode('org'));
 
   document.querySelectorAll('.tab').forEach((tab) => {
     tab.addEventListener('click', () => setMode(tab.dataset.mode));
   });
 
-  el('switchToLogin').addEventListener('click', (e) => {
+  listen('switchToLogin', 'click', (e) => {
     e.preventDefault();
     setMode('org');
   });
 
-  el('guestRegister').addEventListener('submit', (e) => {
+  listen('guestRegister', 'submit', (e) => {
     e.preventDefault();
     setLoggedIn(true, 'гість');
     alert('Гостьовий акаунт створено (демо-режим).');
   });
 
-  el('orgLogin').addEventListener('submit', (e) => {
+  listen('orgLogin', 'submit', (e) => {
     e.preventDefault();
-    const user = el('orgUser').value.trim();
-    const pass = el('orgPass').value;
+    const userField = el('orgUser');
+    const passField = el('orgPass');
+    if (!userField || !passField) {
+      console.error('[H Archives] Login form fields missing');
+      return;
+    }
+    const user = userField.value.trim();
+    const pass = passField.value;
     if (user === demoOrg.username && pass === demoOrg.password) {
       setLoggedIn(true, 'організатор');
       alert('Доступ організатора активовано.');
@@ -282,67 +344,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  el('logoutBtn').addEventListener('click', () => {
+  listen('logoutBtn', 'click', () => {
     setLoggedIn(false);
     alert('Сесію завершено.');
   });
 
-  el('closeModal').addEventListener('click', closeModal);
-  el('docModal').addEventListener('click', (e) => {
+  listen('closeModal', 'click', closeModal);
+  listen('docModal', 'click', (e) => {
     if (e.target.id === 'docModal') closeModal();
   });
 
-  el('toggleNoise').addEventListener('change', (e) => {
+  listen('toggleNoise', 'change', (e) => {
     state.toggles.noise = e.target.checked;
     applyThemeToggles();
   });
-  el('toggleScanlines').addEventListener('change', (e) => {
+  listen('toggleScanlines', 'change', (e) => {
     state.toggles.scanlines = e.target.checked;
     applyThemeToggles();
   });
-  el('toggleRedactions').addEventListener('change', (e) => {
+  listen('toggleRedactions', 'change', (e) => {
     state.toggles.redactions = e.target.checked;
     renderDocs();
     applyThemeToggles();
   });
-  el('toggleStamp').addEventListener('change', (e) => {
+  listen('toggleStamp', 'change', (e) => {
     state.toggles.stamp = e.target.checked;
     applyThemeToggles();
   });
 
-  el('searchInput').addEventListener('input', (e) => {
+  listen('searchInput', 'input', (e) => {
     state.filters.search = e.target.value;
     renderDocs();
   });
-  el('categoryFilter').addEventListener('change', (e) => {
+  listen('categoryFilter', 'change', (e) => {
     state.filters.category = e.target.value;
     renderDocs();
   });
 
-  el('generateDocBtn').addEventListener('click', () => {
+  listen('generateDocBtn', 'click', () => {
     const doc = createDoc(true);
     state.docs.unshift(doc);
     renderDocs();
     openDoc(doc);
   });
 
-  el('fileInput').addEventListener('change', async (e) => {
-    const picked = [...e.target.files];
-    if (!picked.length) return;
+  listen('fileInput', 'change', async (e) => {
+    try {
+      const picked = [...e.target.files];
+      if (!picked.length) return;
 
-    for (const file of picked) {
-      state.files.unshift({
-        name: file.name,
-        kind: file.type || 'unknown',
-        size: bytesToHuman(file.size),
-        tag: file.type.startsWith('image/') ? 'PHOTO' : file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'FILE',
-      });
+      for (const file of picked) {
+        state.files.unshift({
+          name: file.name,
+          kind: file.type || 'unknown',
+          size: bytesToHuman(file.size),
+          tag: file.type.startsWith('image/') ? 'PHOTO' : file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'FILE',
+        });
+      }
+
+      renderFiles();
+      alert(`${picked.length} файл(и) додано до локального прев’ю.`);
+      e.target.value = '';
+    } catch (err) {
+      console.error('[H Archives] Error processing files:', err);
+      alert('Помилка при обробці файлів. Спробуйте ще раз.');
     }
-
-    renderFiles();
-    alert(`${picked.length} файл(и) додано до локального прев’ю.`);
-    e.target.value = '';
   });
 
   window.addEventListener('resize', resizeCanvas);
+  } catch (err) {
+    console.error('[H Archives] Initialization failed:', err);
+  }
 });
