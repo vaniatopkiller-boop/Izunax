@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX — Профіль</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff3366">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        :root { --bg:#0a0a0f;--bg2:#0f0f1a;--red:#ff3366;--red-dim:rgba(255,51,102,0.3);--purple:#8b00ff;--text:#e8e0f0;--text-dim:#888;--text-faint:#555;--border:rgba(255,255,255,0.06);--card:rgba(15,15,20,0.9);--input:#1a1a1a; }
+        .theme-light { --bg:#f5f5f5;--bg2:#fff;--text:#1a1a1a;--text-dim:#666;--text-faint:#999;--border:rgba(0,0,0,0.08);--card:rgba(255,255,255,0.95);--input:#f0f0f0; }
+        .theme-purple { --bg:#0d001a;--bg2:#15002e;--red:#bb00ff;--text:#e8d0ff;--text-dim:#9a7abf;--text-faint:#5a3a7f;--border:rgba(187,0,255,0.1);--card:rgba(21,0,46,0.95);--input:#1a0030; }
+        .theme-green { --bg:#001a0a;--bg2:#002e15;--red:#00ff66;--text:#d0ffe0;--text-dim:#7abf9a;--text-faint:#3a7f5a;--border:rgba(0,255,102,0.1);--card:rgba(0,46,21,0.95);--input:#00301a; }
+        .theme-gold { --bg:#1a1500;--bg2:#2e2500;--red:#ffd700;--text:#ffe8a0;--text-dim:#bfa060;--text-faint:#7f6a30;--border:rgba(255,215,0,0.1);--card:rgba(46,37,0,0.95);--input:#302800; }
+        .theme-blue { --bg:#000a1a;--bg2:#00152e;--red:#0099ff;--text:#d0e8ff;--text-dim:#7ab0bf;--text-faint:#3a607f;--border:rgba(0,153,255,0.1);--card:rgba(0,21,46,0.95);--input:#001830; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; transition:all 0.3s; }
+        .header { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(10,10,15,0.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+        .header-inner { max-width:1200px; margin:0 auto; padding:0 20px; height:60px; display:flex; align-items:center; gap:12px; }
+        .logo { text-decoration:none; display:flex; align-items:baseline; gap:4px; }
+        .logo-ix { font-family:'Cinzel',serif; font-size:1.3rem; font-weight:900; color:var(--red); }
+        .logo-full { font-family:'Cinzel',serif; font-size:0.9rem; font-weight:700; color:var(--text-dim); letter-spacing:2px; }
+        .nav { margin-left:auto; display:flex; align-items:center; gap:6px; }
+        .nav a { color:var(--text-dim); text-decoration:none; font-weight:600; letter-spacing:1px; padding:6px 10px; font-size:13px; text-transform:uppercase; }
+        .nav a:hover { color:var(--text); }
+        .main { max-width:600px; margin:80px auto 40px; padding:0 20px; }
+        .card { background:var(--card); border:1px solid var(--red-dim); border-radius:20px; padding:30px; text-align:center; }
+        .avatar-wrap { position:relative; display:inline-block; cursor:pointer; }
+        .avatar { width:120px; height:120px; border-radius:50%; border:4px solid var(--red); object-fit:cover; }
+        .avatar-overlay { position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s; color:#fff; font-size:14px; }
+        .avatar-wrap:hover .avatar-overlay { opacity:1; }
+        .badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600; letter-spacing:1px; margin:4px; }
+        .badge-admin { background:linear-gradient(90deg,#8b00ff,#ff1432); color:#fff; }
+        .badge-creator { background:linear-gradient(90deg,#ffd700,#ff8c00); color:#000; }
+        .badge-verified { color:#4285F4; font-size:20px; }
+        .input { width:100%; padding:12px; margin:8px 0; background:var(--input); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Rajdhani',sans-serif; }
+        .btn { padding:12px 24px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Rajdhani',sans-serif; border:none; font-size:14px; text-transform:uppercase; margin:4px; }
+        .btn-primary { background:linear-gradient(90deg,var(--purple),var(--red)); color:#fff; }
+        .btn-danger { background:transparent; border:1px solid #ff4444; color:#ff4444; }
+        .my-arts { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-top:15px; }
+        .my-art { aspect-ratio:1; border-radius:8px; overflow:hidden; cursor:pointer; }
+        .my-art img { width:100%; height:100%; object-fit:cover; }
+    </style>
+</head>
+<body>
+<header class="header"><div class="header-inner">
+    <a href="index.html" class="logo"><span class="logo-ix">IX</span><span class="logo-full">IZUNAX</span></a>
+    <nav class="nav">
+        <a href="gallery.html">Галерея</a>
+        <a href="chat.html">💬Чат</a>
+        <a href="messages.html">✉ЛС</a>
+        <a href="bookmarks.html">⭐</a>
+        <a href="profile.html" style="color:var(--red);">Профіль</a>
+        <a href="settings.html">⚙️</a>
+        <a href="login.html" id="navLogin">Увійти</a>
+        <a href="#" onclick="doLogout()" id="navLogout" style="display:none;color:#ff4444;">Вийти</a>
+    </nav>
+</div></header>
+<main class="main"><div class="card" id="profileCard"><p>Завантаження...</p></div></main>
+
+<script type="module">
+import { auth, db, doc, getDoc, updateDoc, collection, getDocs, onAuthStateChanged } from "./firebase-auth.js";
+
+const t = localStorage.getItem('izunax_theme') || 'dark';
+document.body.classList.toggle('theme-light', t==='light');
+document.body.classList.toggle('theme-purple', t==='purple');
+document.body.classList.toggle('theme-green', t==='green');
+document.body.classList.toggle('theme-gold', t==='gold');
+document.body.classList.toggle('theme-blue', t==='blue');
+
+window.doLogout = () => { auth.signOut(); window.location.href = 'login.html'; };
+
+let loaded = false;
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    if (loaded) return;
+    loaded = true;
+    
+    document.getElementById('navLogin').style.display = 'none';
+    document.getElementById('navLogout').style.display = '';
+    
+    try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (!snap.exists()) {
+            document.getElementById('profileCard').innerHTML = '<p style="color:#ff3366;">Профіль не знайдено. <a href="login.html">Увійти знову</a></p>';
+            return;
+        }
+        
+        const d = snap.data();
+        
+        const artsSnap = await getDocs(collection(db, 'artworks'));
+        const myArts = [];
+        let totalLikes = 0;
+        artsSnap.forEach(x => {
+            if (x.data().authorUid === user.uid) {
+                myArts.push(x.data());
+                totalLikes += (x.data().likes || 0);
+            }
+        });
+        
+        if (totalLikes !== (d.likes || 0)) {
+            await updateDoc(doc(db, 'users', user.uid), { likes: totalLikes });
+            d.likes = totalLikes;
+        }
+        
+        document.getElementById('profileCard').innerHTML = `
+            <div class="avatar-wrap" onclick="document.getElementById('avInput').click()">
+                <img src="${d.avatar || 'https://i.ibb.co/0jZqY7Z/default-avatar.png'}" class="avatar" id="avImg">
+                <div class="avatar-overlay">Змінити</div>
+            </div>
+            <input type="file" id="avInput" accept="image/*" style="display:none" onchange="uploadAv(event)">
+            <h2 style="font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:2px;">${d.name || 'Artist'} ${d.isVerified ? '<span class="badge-verified">✓</span>' : ''}</h2>
+            <p style="color:var(--text-dim);">${d.bio || 'Опис відсутній'}</p>
+            ${d.isAdmin ? '<span class="badge badge-admin">⚡ Адмін</span>' : ''}
+            ${d.isCreator ? '<span class="badge badge-creator">★ Творець</span>' : ''}
+            <div style="margin:15px 0;color:var(--text-dim);">🎨 ${myArts.length} артів · ♥ ${d.likes || 0} лайків</div>
+            <input class="input" id="editName" placeholder="Ім'я" value="${d.name || ''}">
+            <input class="input" id="editBio" placeholder="Біо..." value="${d.bio || ''}">
+            <input class="input" id="editAvUrl" placeholder="URL аватарки" value="${d.avatar || ''}">
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Зберегти</button>
+            <button class="btn btn-danger" onclick="doLogout()">🚪 Вийти</button>
+            ${myArts.length ? `<h3 style="font-family:'Cinzel',serif;margin-top:20px;">Мої арти</h3><div class="my-arts">${myArts.map(a => `<div class="my-art" onclick="location.href='gallery.html'"><img src="${a.image}" alt="${a.title}"></div>`).join('')}</div>` : ''}
+        `;
+        
+        window.uploadAv = (e) => {
+            const f = e.target.files[0];
+            if (!f || f.size > 3 * 1024 * 1024) return alert('Max 3MB');
+            const r = new FileReader();
+            r.onload = async (ev) => {
+                await updateDoc(doc(db, 'users', user.uid), { avatar: ev.target.result });
+                document.getElementById('avImg').src = ev.target.result;
+            };
+            r.readAsDataURL(f);
+        };
+        
+        window.saveProfile = async () => {
+            const name = document.getElementById('editName').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const avUrl = document.getElementById('editAvUrl').value.trim();
+            const upd = {};
+            if (name) upd.name = name;
+            upd.bio = bio;
+            if (avUrl) upd.avatar = avUrl;
+            await updateDoc(doc(db, 'users', user.uid), upd);
+            alert('✅ Збережено!');
+        };
+        
+    } catch (e) {
+        document.getElementById('profileCard').innerHTML = `<p style="color:#ff3366;">Помилка: ${e.message}</p>`;
+    }
+});
+</script>
+<script src="lang.js"></script>
+<div style="text-align:center; padding:20px;"><a href="about.html" style="color:#888;">Про нас / Правила</a></div>
+<div style="text-align:center; padding:20px; margin-top:30px; border-top:1px solid #2a2a30;"><a href="about.html" style="color:#8a6eff; text-decoration:none;">📜 Про нас / Правила спільноти</a></div>
+</body>
+</html>

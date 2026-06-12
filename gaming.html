@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZUNAX // Premium Gaming Terminal</title>
+    
+    <script src="[https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js](https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js)"></script>
+    <script src="[https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js](https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js)"></script>
+    
+    <style>
+        :root {
+            --bg-deep: #05020c;
+            --glass-card: rgba(14, 8, 28, 0.65);
+            --glass-border: rgba(168, 85, 247, 0.25);
+            --neon-purple: #a855f7;
+            --neon-glow: #c084fc;
+            --text-bright: #ffffff;
+            --text-muted: #94a3b8;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body { 
+            background: var(--bg-deep); 
+            color: var(--text-bright); 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+        }
+
+        #fluid-canvas {
+            position: fixed;
+            top: 0; left: 0; z-index: -1;
+            opacity: 0.35; pointer-events: none;
+        }
+
+        /* --- АВТОРИЗАЦІЯ --- */
+        #auth-section {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
+        }
+        .auth-card {
+            background: var(--glass-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 35px; width: 100%; max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+        .brand-badge {
+            display: inline-block; background: rgba(168, 85, 247, 0.2); color: var(--neon-glow);
+            padding: 6px 12px; border-radius: 50px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        h1, h2, h3, h4 { 
+            background: linear-gradient(135deg, #fff 40%, var(--neon-glow) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 15px 0;
+        }
+        .tab-container { display: flex; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 12px; margin-bottom: 22px; }
+        .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 13px; border-radius: 8px; }
+        .tab-btn.active { background: rgba(168, 85, 247, 0.3); color: #fff; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--glass-border); border-radius: 12px; font-size: 14px; }
+        .btn-main { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--neon-purple) 0%, #7c3aed 100%); border: none; color: #fff; font-weight: 600; cursor: pointer; border-radius: 50px; font-size: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 16px rgba(168, 85, 247, 0.25); }
+
+        /* --- ІНТЕРФЕЙС ХАБА --- */
+        #main-hub { display: none; }
+        .hub-nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--glass-card); backdrop-filter: blur(15px); padding: 15px 30px; 
+            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100;
+        }
+        .nav-logo { font-size: 20px; font-weight: 800; margin: 0; }
+        .nav-links { display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 50px; gap: 2px; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px 16px; font-weight: 600; font-size: 13px; border-radius: 50px; }
+        .nav-btn.active { color: #fff; background: var(--neon-purple); }
+        .hub-container { max-width: 700px; margin: 30px auto; padding: 0 15px; padding-bottom: 60px; }
+        
+        /* ЛЕНТА ПОСТІВ */
+        .feed-list { display: flex; flex-direction: column; gap: 25px; }
+        .insta-post { 
+            background: var(--glass-card); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; margin-bottom: 15px;
+        }
+        .post-author-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .author-avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--neon-purple); background: #110c22; margin-right: 10px;}
+        .author-name { font-weight: 600; font-size: 14px; }
+        .post-media-container { width: 100%; background: #000; }
+        .post-media-container img, .post-media-container video { width: 100%; max-height: 450px; object-fit: contain; display: block; }
+        .post-actions { padding: 12px 18px 6px 18px; }
+        .like-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .like-btn.liked { color: #f43f5e; }
+        .post-content-block { padding: 0 18px 18px 18px; }
+        .post-main-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+        .post-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin: 0; }
+
+        /* ПРОФІЛЬ */
+        .profile-wrapper { background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; }
+        .profile-avatar-preview { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-purple); display: block; margin: 0 auto 15px auto; }
+        .publish-box { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 16px; padding: 20px; margin-top: 25px; }
+
+        /* АДМІНКА */
+        .admin-box { background: rgba(20, 6, 36, 0.9); border: 2px solid var(--accent-red); border-radius: 24px; padding: 25px; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); margin-bottom: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-delete { background: var(--accent-red); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-grant { background: var(--neon-purple); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+
+        /* ІНСТРУМЕНТИ ПОШУКУ ТА КАТЕГОРІЙ */
+        .search-bar-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .news-tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 25px; padding-bottom: 5px; }
+        .news-tab { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 8px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .news-tab.active { background: var(--neon-purple); border-color: var(--neon-purple); color: #fff; }
+    </style>
+</head>
+<body>
+
+<canvas id="fluid-canvas"></canvas>
+
+<!-- ЕКРАН ВХОДУ -->
+<div id="auth-section">
+    <div class="auth-card">
+        <div class="brand-badge">IZUNAX CORE</div>
+        <h1>Вхід в Термінал</h1>
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Вхід</button>
+            <button class="tab-btn" id="tab-reg" onclick="setMode('reg')">Реєстрація</button>
+        </div>
+        <form id="auth-form">
+            <div class="input-group">
+                <label>Пошта Gmail</label>
+                <input type="email" id="g-email" placeholder="vaniatopkiller@gmail.com" required>
+            </div>
+            <div class="input-group">
+                <label>Крипто-пароль</label>
+                <input type="password" id="g-pass" placeholder="••••••••" required>
+            </div>
+            <div class="input-group" id="nick-group" style="display: none;">
+                <label>Ім'я оператора (Нік)</label>
+                <input type="text" id="g-login" placeholder="USER_ID">
+            </div>
+            <button type="submit" class="btn-main">Ініціалізувати сесію</button>
+        </form>
+    </div>
+</div>
+
+<!-- ГОЛОВНА СИСТЕМА -->
+<div id="main-hub">
+    <nav class="hub-nav">
+        <h2 class="nav-logo">IZUNAX // CORE</h2>
+        <div class="nav-links">
+            <button class="nav-btn active" id="btn-tab-feed" onclick="switchTab('feed')">Лента Хаба</button>
+            <button class="nav-btn" id="btn-tab-itc" onclick="switchTab('itc')">Живі Новости</button>
+            <button class="nav-btn" id="btn-tab-profile" onclick="switchTab('profile')">Профиль</button>
+            <!-- КНОПКА АДМІНКИ (ДЛЯ ТЕБЕ) -->
+            <button class="nav-btn" id="btn-tab-admin" onclick="switchTab('admin')" style="display: none; border: 1px solid var(--accent-red); color: var(--accent-red);">ROOT_ПАНЕЛЬ</button>
+        </div>
+    </nav>
+    
+    <div class="hub-container">
+        
+        <!-- ВКЛАДКА КОРИСТУВАЦЬКОЇ ЛЕНТИ -->
+        <div id="feed-view-container">
+            <h3>// ІГРОВА МЕДІАЛЕНТА</h3>
+            <div id="feed-view" class="feed-list"></div>
+        </div>
+        
+        <!-- ВКЛАДКА ЖИВИХ НОВИН З АВТОКОПІЮВАННЯМ -->
+        <div id="itc-view-container" style="display: none;">
+            <h3>// СВІТОВИЙ ЖИВИЙ ПАРСЕР</h3>
+            
+            <div class="search-bar-container">
+                <input type="text" id="news-search" placeholder="Пошук за ключовими словами..." oninput="handleNewsSearch(this.value)">
+            </div>
+            
+            <div class="news-tabs">
+                <button class="news-tab active" onclick="filterNewsByCategory('all')">Всі потоки</button>
+                <button class="news-tab" onclick="filterNewsByCategory('games')">Ігри</button>
+                <button class="news-tab" onclick="filterNewsByCategory('hardware')">Залізо / Консолі</button>
+                <button class="news-tab" onclick="filterNewsByCategory('esports')">Киберспорт</button>
+            </div>
+
+            <div id="itc-view" class="feed-list"></div>
+            <div id="news-loader" style="text-align:center; padding:15px; color:var(--neon-glow); font-size:12px;">🔄 Завантаження свіжих пакетів даних...</div>
+        </div>
+        
+        <!-- ВКЛАДКА ПРОФІЛЮ -->
+        <div id="profile-view-container" style="display: none;">
+            <h3>// ПАНЕЛЬ ОПЕРАТОРА</h3>
+            <div class="profile-wrapper">
+                <form id="profile-update-form">
+                    <img id="profile-avatar-img" class="profile-avatar-preview" src="">
+                    <input type="file" id="profile-avatar-file" accept="image/*" style="display:none;">
+                    <button type="button" class="btn-main" style="max-width:160px; padding:6px; font-size:11px; margin:0 auto 15px auto;" onclick="document.getElementById('profile-avatar-file').click()">Змінити аватар</button>
+
+                    <div class="input-group">
+                        <label>Нікнейм ядра</label>
+                        <input type="text" id="p-edit-login" required>
+                    </div>
+                    <button type="submit" class="btn-main" style="padding:10px; font-size:13px;">Зберегти конфігурацію</button>
+                </form>
+
+                <!-- СТВОРЕННЯ ПОСТУ -->
+                <div class="publish-box">
+                    <h4 style="color: var(--neon-glow); margin-bottom: 10px;">СТВОРИТИ ПУБЛІКАЦІЮ З ФОТО/ВІДЕО</h4>
+                    <form id="post-form">
+                        <input type="text" id="post-title" placeholder="Заголовок поста..." required style="margin-bottom:10px;">
+                        <textarea id="post-text" rows="2" placeholder="Текст публікації..." required style="margin-bottom:10px;"></textarea>
+                        <div style="margin-bottom:12px;">
+                            <label style="font-size:11px; color:var(--text-muted);">Медіафайл (Фото/Відео)</label>
+                            <input type="file" id="post-file" accept="image/*,video/*" style="padding:5px;">
+                        </div>
+                        <button type="submit" class="btn-main" style="background: var(--accent-green);">Опублікувати в загальну ленту</button>
+                    </form>
+                </div>
+                <button onclick="logoutSession();" class="btn-main" style="background:transparent; border:1px solid var(--accent-red); color:var(--accent-red); margin-top:20px;">Вийти з термінала</button>
+            </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНА АДМІН-ПАНЕЛЬ -->
+        <div id="admin-view-container" style="display: none;">
+            <div class="admin-box" style="margin-bottom: 25px;">
+                <h3 style="color: var(--accent-red);">🔒 СЕРВЕРНИЙ МОДЕРАТОР ЯДРА (`vaniatopkiller@gmail.com`)</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Видалення публікацій та модерація вмісту в реальному часі.</p>
+                <div id="admin-posts-list" style="max-height: 350px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="admin-box">
+                <h3 style="color: var(--neon-glow);">👥 БАЗА ОПЕРАТОРІВ // ПРАВА ДОСТУПУ</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Керування користувачами, видача ROOT-прав або блокування.</p>
+                <div id="admin-users-list" style="max-height: 350px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="news-scraper.js"></script>
+<script src="gaming.js"></script>
+</body>
+</html>
