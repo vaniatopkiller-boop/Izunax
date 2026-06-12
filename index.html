@@ -1,3 +1,225 @@
-<!doctype html><html lang='ru'><head><meta charset='utf-8'><title>Архив организации «Н»</title>
-<style>body{background:#080808;color:#ddd;font-family:Arial;margin:0}header{padding:20px;background:#1a0000;border-bottom:2px solid #700}main{max-width:900px;margin:auto;padding:30px}.card{background:#111;border:1px solid #600;padding:20px;border-radius:8px}a{display:inline-block;margin-top:20px;background:#900;color:#fff;padding:10px 16px;text-decoration:none}</style>
-</head><body><header><h1>Архив организации «Н»</h1></header><main><div class='card'><p>Добро пожаловать в закрытый архив.</p><a href='login.html'>Войти</a></div></main></body></html>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>H Archives — Розсекречені матеріали</title>
+  <meta name="description" content="Фіктивний архів організації «H» із гостьовим доступом, режимом організатора, генератором досьє та шумовими ефектами." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="noise"></canvas>
+  <div class="overlay scanlines"></div>
+  <div class="overlay vignette"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">H</div>
+      <div>
+        <div class="brand-title">H ARCHIVES</div>
+        <div class="brand-subtitle">LEAKED DATA COLLECTION</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#home">Головна</a>
+      <a href="#archives">Архіви</a>
+      <a href="#rules">Правила</a>
+      <a href="#contacts">Контакти</a>
+      <button class="ghost-btn" id="openLogin">Увійти</button>
+      <button class="lang-btn" id="langBtn">UK ▾</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <div class="eyebrow">ОПЕРАЦІЯ: СЕКРЕТНО / ДОСТУП ОБМЕЖЕНО</div>
+        <h1><span class="accent">H</span> ARCHIVES</h1>
+        <p class="lead">
+          Збірник розсекречених документів, фото, стенограм і матеріалів організації «H».
+          Гостям — читання та пошук. Організаторам — завантаження, створення досьє та керування архівом.
+        </p>
+
+        <div class="cta-row">
+          <button class="primary-btn" id="guestModeBtn">Увійти як гість</button>
+          <button class="secondary-btn" id="orgModeBtn">Увійти як організатор</button>
+        </div>
+
+        <div class="status-row">
+          <div class="status-pill active">LIVE STATIC</div>
+          <div class="status-pill">AUTO STAMP</div>
+          <div class="status-pill">FILE VAULT</div>
+        </div>
+      </div>
+
+      <aside class="login-panel glass" id="loginPanel">
+        <div class="tabs">
+          <button class="tab active" data-mode="guest">Реєстрація читача (гість)</button>
+          <button class="tab" data-mode="org">Вхід для організатора</button>
+        </div>
+
+        <div class="panel-inner" id="guestForm">
+          <h2>Реєстрація читача (гість)</h2>
+          <p>Створіть обліковий запис для доступу до відкритих архівів.</p>
+          <form id="guestRegister">
+            <input type="text" placeholder="Ім'я користувача" required />
+            <input type="email" placeholder="Електронна пошта (опціонально)" />
+            <input type="password" placeholder="Пароль" required />
+            <button type="submit" class="primary-btn full">Зареєструватися</button>
+          </form>
+          <div class="hint">Уже маєте акаунт? <a href="#" id="switchToLogin">Увійти</a></div>
+        </div>
+
+        <div class="panel-inner hidden" id="orgForm">
+          <h2>Доступ організатора</h2>
+          <p>Підвищений рівень доступу: завантаження файлів, генератор документів, редагування.</p>
+          <form id="orgLogin">
+            <input type="text" id="orgUser" placeholder="Логін" autocomplete="off" required />
+            <input type="password" id="orgPass" placeholder="Пароль" autocomplete="off" required />
+            <button type="submit" class="danger-btn full">Увійти</button>
+          </form>
+          <div class="hint">Демо-режим: змініть логін/пароль у файлі <code>script.js</code>.</div>
+        </div>
+
+        <div class="session-bar">
+          <span id="sessionState">Сесія: гість неактивний</span>
+          <button class="mini-btn" id="logoutBtn">Вийти</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="features">
+      <article class="feature-card glass">
+        <div class="icon">⟡</div>
+        <h3>Злиті документи</h3>
+        <p>Внутрішні накази, звіти, листування і файли з мітками секретності.</p>
+      </article>
+      <article class="feature-card glass">
+        <div class="icon">☰</div>
+        <h3>Прозорий доступ</h3>
+        <p>Пошук, фільтри, режим читача та швидке відкриття досьє.</p>
+      </article>
+      <article class="feature-card glass">
+        <div class="icon">◉</div>
+        <h3>Анонімність</h3>
+        <p>Увімкніть шум, редагування та затемнення для потрібної атмосфери.</p>
+      </article>
+    </section>
+
+    <section class="control-strip glass" id="rules">
+      <div class="control-copy">
+        <h2>Панель керування атмосферою</h2>
+        <p>Перемикачі змінюють вигляд сайту, рівень шуму та спосіб відображення документів.</p>
+      </div>
+
+      <div class="switch-grid">
+        <label class="switch">
+          <input type="checkbox" id="toggleNoise" checked />
+          <span class="slider"></span>
+          <span class="switch-label">Шум</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggleScanlines" checked />
+          <span class="slider"></span>
+          <span class="switch-label">Скан-лінії</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggleRedactions" checked />
+          <span class="slider"></span>
+          <span class="switch-label">Редакція</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggleStamp" checked />
+          <span class="slider"></span>
+          <span class="switch-label">Печатки</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="archives" id="archives">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">АРХІВИ ОРГАНІЗАЦІЇ «H»</div>
+          <h2>Досьє, фото, стенограми та записи</h2>
+        </div>
+
+        <div class="tools">
+          <input type="search" id="searchInput" placeholder="Пошук по архіву..." />
+          <select id="categoryFilter">
+            <option value="all">Усі категорії</option>
+            <option value="dossier">Досьє</option>
+            <option value="photo">Фото</option>
+            <option value="audio">Аудіо</option>
+            <option value="memo">Нотатки</option>
+          </select>
+          <button class="secondary-btn" id="generateDocBtn">Згенерувати досьє</button>
+        </div>
+      </div>
+
+      <div class="archive-grid" id="archiveGrid"></div>
+    </section>
+
+    <section class="upload-panel glass" id="contacts">
+      <div class="upload-copy">
+        <div class="eyebrow">ЗАВАНТАЖЕННЯ ДЛЯ ОРГАНІЗАТОРА</div>
+        <h2>Додати нові матеріали</h2>
+        <p>Працює як демо-панель: файли залишаються у браузері, але виглядають як справжня система архівування.</p>
+
+        <label class="file-drop" for="fileInput">
+          <strong>Перетягніть файли сюди або натисніть для вибору</strong>
+          <span>Фото, PDF, TXT, ZIP — безпечний локальний перегляд</span>
+        </label>
+        <input id="fileInput" type="file" multiple />
+      </div>
+
+      <div class="file-list">
+        <div class="list-title">Завантажені елементи</div>
+        <div id="filePreview" class="preview-empty">Поки що файлів немає.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 H Archives. Усі матеріали вигадані для атмосферного проєкту.</p>
+  </footer>
+
+  <div class="modal hidden" id="docModal">
+    <div class="modal-card glass">
+      <button class="close-btn" id="closeModal">×</button>
+      <div class="doc-meta">
+        <span class="doc-type" id="modalType">DOSSIER</span>
+        <span class="doc-id" id="modalId">H-000</span>
+      </div>
+      <h3 id="modalTitle">Назва досьє</h3>
+      <p id="modalBody"></p>
+
+      <div class="stamp-row">
+        <div class="stamp-circle" id="stampCircle">СЕКРЕТНО</div>
+        <div class="stamp-note">
+          <strong>Автоматична печатка організації «H»</strong>
+          <span>Накладається поверх прев’ю для ефекту розсекречення.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="docTemplate">
+    <article class="doc-card glass">
+      <div class="doc-top">
+        <span class="badge"></span>
+        <span class="locked">◎</span>
+      </div>
+      <div class="doc-title"></div>
+      <div class="doc-snippet"></div>
+      <div class="doc-footer">
+        <span class="doc-date"></span>
+        <button class="mini-btn open-doc">Відкрити</button>
+      </div>
+      <div class="stamp-overlay">H • ARCHIVE</div>
+    </article>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
