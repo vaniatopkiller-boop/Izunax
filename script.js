@@ -29,7 +29,7 @@ const categories = {
 };
 
 const titles = [
-  'Досьє: Пульс об’єкта',
+  'Досьє: Пульс об\u2019єкта',
   'Пакет спостереження',
   'Звіт нічної групи',
   'Фотографії коридору',
@@ -47,32 +47,17 @@ const bodies = [
   'Оновлено через панель керування: додано правки, локальні коментарі та приховані поля, які відкриваються при наведенні.',
 ];
 
-function rand(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function pad(n) {
-  return String(n).padStart(3, '0');
-}
-
-function randomDate() {
-  const start = new Date(2024, 0, 1).getTime();
-  const end = new Date(2025, 11, 31).getTime();
-  const ts = start + Math.random() * (end - start);
-  const d = new Date(ts);
-  return d.toLocaleDateString('uk-UA', { year: 'numeric', month: 'short', day: '2-digit' });
-}
-
 function createDoc(custom = false) {
   const type = rand(Object.keys(categories));
-  const id = `H-${pad(Math.floor(Math.random() * 900 + 100))}`;
-  const title = custom ? `Автогенерація: ${rand(['Сектор', 'Периметр', 'Фрагмент', 'Код'])} ${pad(Math.floor(Math.random()*99)+1)}` : rand(titles);
-  const text = rand(bodies);
+  const id = randomPaddedId('H-', 100, 999);
+  const title = custom
+    ? `Автогенерація: ${rand(['Сектор', 'Периметр', 'Фрагмент', 'Код'])} ${pad(randomInt(1, 99))}`
+    : rand(titles);
   return {
     id,
     type,
     title,
-    body: text,
+    body: rand(bodies),
     date: randomDate(),
     category: type,
     custom,
@@ -81,10 +66,6 @@ function createDoc(custom = false) {
 
 function seedDocs() {
   state.docs = Array.from({ length: 9 }, () => createDoc(false));
-}
-
-function el(id) {
-  return document.getElementById(id);
 }
 
 function setSession(text) {
@@ -159,28 +140,24 @@ function openDoc(doc) {
   el('modalId').textContent = doc.id;
   el('modalTitle').textContent = doc.title;
   el('modalBody').innerHTML = redactText(doc.body + ' ' + rand(bodies) + ' ' + rand(bodies));
-  el('docModal').classList.remove('hidden');
+  show('docModal');
 }
 
 function closeModal() {
-  el('docModal').classList.add('hidden');
+  hide('docModal');
 }
 
 function setMode(mode) {
   state.mode = mode;
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.mode === mode));
-  el('guestForm').classList.toggle('hidden', mode !== 'guest');
-  el('orgForm').classList.toggle('hidden', mode !== 'org');
+  toggleVisibility('guestForm', mode === 'guest');
+  toggleVisibility('orgForm', mode === 'org');
 }
 
 function setLoggedIn(loggedIn, role = 'гість') {
   state.loggedIn = loggedIn;
-  if (loggedIn) {
-    setSession(`${role} активний`);
-  } else {
-    setSession('гість неактивний');
-  }
+  setSession(loggedIn ? `${role} активний` : 'гість неактивний');
 }
 
 function renderFiles() {
@@ -202,10 +179,10 @@ function renderFiles() {
   `).join('');
 }
 
-function bytesToHuman(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+function fileTag(file) {
+  if (file.type.startsWith('image/')) return 'PHOTO';
+  if (file.name.toLowerCase().endsWith('.pdf')) return 'PDF';
+  return 'FILE';
 }
 
 /* Noise canvas */
@@ -247,86 +224,75 @@ document.addEventListener('DOMContentLoaded', () => {
   resizeCanvas();
   drawNoise();
 
-  el('openLogin').addEventListener('click', () => {
+  on('openLogin', 'click', () => {
     el('loginPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
     setMode('org');
   });
 
-  el('guestModeBtn').addEventListener('click', () => setMode('guest'));
-  el('orgModeBtn').addEventListener('click', () => setMode('org'));
+  on('guestModeBtn', 'click', () => setMode('guest'));
+  on('orgModeBtn', 'click', () => setMode('org'));
 
-  document.querySelectorAll('.tab').forEach((tab) => {
-    tab.addEventListener('click', () => setMode(tab.dataset.mode));
-  });
+  onAll('.tab', 'click', (e) => setMode(e.currentTarget.dataset.mode));
 
-  el('switchToLogin').addEventListener('click', (e) => {
+  on('switchToLogin', 'click', (e) => {
     e.preventDefault();
     setMode('org');
   });
 
-  el('guestRegister').addEventListener('submit', (e) => {
+  on('guestRegister', 'submit', (e) => {
     e.preventDefault();
     setLoggedIn(true, 'гість');
-    alert('Гостьовий акаунт створено (демо-режим).');
+    notify('Гостьовий акаунт створено (демо-режим).');
   });
 
-  el('orgLogin').addEventListener('submit', (e) => {
+  on('orgLogin', 'submit', (e) => {
     e.preventDefault();
     const user = el('orgUser').value.trim();
     const pass = el('orgPass').value;
     if (user === demoOrg.username && pass === demoOrg.password) {
       setLoggedIn(true, 'організатор');
-      alert('Доступ організатора активовано.');
+      notify('Доступ організатора активовано.');
     } else {
-      alert('Невірний логін або пароль.');
+      notify('Невірний логін або пароль.');
     }
   });
 
-  el('logoutBtn').addEventListener('click', () => {
+  on('logoutBtn', 'click', () => {
     setLoggedIn(false);
-    alert('Сесію завершено.');
+    notify('Сесію завершено.');
   });
 
-  el('closeModal').addEventListener('click', closeModal);
-  el('docModal').addEventListener('click', (e) => {
+  on('closeModal', 'click', closeModal);
+  on('docModal', 'click', (e) => {
     if (e.target.id === 'docModal') closeModal();
   });
 
-  el('toggleNoise').addEventListener('change', (e) => {
-    state.toggles.noise = e.target.checked;
-    applyThemeToggles();
-  });
-  el('toggleScanlines').addEventListener('change', (e) => {
-    state.toggles.scanlines = e.target.checked;
-    applyThemeToggles();
-  });
-  el('toggleRedactions').addEventListener('change', (e) => {
-    state.toggles.redactions = e.target.checked;
+  /* Theme toggles — unified binding */
+  bindToggle('toggleNoise', state.toggles, 'noise', applyThemeToggles);
+  bindToggle('toggleScanlines', state.toggles, 'scanlines', applyThemeToggles);
+  bindToggle('toggleRedactions', state.toggles, 'redactions', () => {
     renderDocs();
     applyThemeToggles();
   });
-  el('toggleStamp').addEventListener('change', (e) => {
-    state.toggles.stamp = e.target.checked;
-    applyThemeToggles();
-  });
+  bindToggle('toggleStamp', state.toggles, 'stamp', applyThemeToggles);
 
-  el('searchInput').addEventListener('input', (e) => {
+  on('searchInput', 'input', (e) => {
     state.filters.search = e.target.value;
     renderDocs();
   });
-  el('categoryFilter').addEventListener('change', (e) => {
+  on('categoryFilter', 'change', (e) => {
     state.filters.category = e.target.value;
     renderDocs();
   });
 
-  el('generateDocBtn').addEventListener('click', () => {
+  on('generateDocBtn', 'click', () => {
     const doc = createDoc(true);
     state.docs.unshift(doc);
     renderDocs();
     openDoc(doc);
   });
 
-  el('fileInput').addEventListener('change', async (e) => {
+  on('fileInput', 'change', async (e) => {
     const picked = [...e.target.files];
     if (!picked.length) return;
 
@@ -335,12 +301,12 @@ document.addEventListener('DOMContentLoaded', () => {
         name: file.name,
         kind: file.type || 'unknown',
         size: bytesToHuman(file.size),
-        tag: file.type.startsWith('image/') ? 'PHOTO' : file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'FILE',
+        tag: fileTag(file),
       });
     }
 
     renderFiles();
-    alert(`${picked.length} файл(и) додано до локального прев’ю.`);
+    notify(`${picked.length} файл(и) додано до локального прев'ю.`);
     e.target.value = '';
   });
 
