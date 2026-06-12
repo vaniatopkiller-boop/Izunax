@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <title>H Archives — Розсекречені матеріали</title>
   <meta name="description" content="Фіктивний архів організації «H» із гостьовим доступом, режимом організатора, генератором досьє та шумовими ефектами." />
   <link rel="stylesheet" href="styles.css" />
@@ -79,7 +80,7 @@
             <input type="password" id="orgPass" placeholder="Пароль" autocomplete="off" required />
             <button type="submit" class="danger-btn full">Увійти</button>
           </form>
-          <div class="hint">Демо-режим: змініть логін/пароль у файлі <code>script.js</code>.</div>
+          <div class="hint">Облікові дані зберігаються у хешованому вигляді.</div>
         </div>
 
         <div class="session-bar">
