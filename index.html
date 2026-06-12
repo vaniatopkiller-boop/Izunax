@@ -225,6 +225,7 @@
         <a href="archive.html" class="btn btn-primary">Открыть архив</a>
         <a href="terminal.html" class="btn btn-secondary">Терминал доступа</a>
         <a href="login.html" data-auth="login" class="btn btn-ghost">Авторизация</a>
+        <button class="suggest-btn hidden" data-auth="only" id="heroSuggestBtn">&#9998; Предложить публикацию</button>
       </div>
       <div class="hero-status">
         <span class="status-pill live">СИСТЕМА АКТИВНА</span>
@@ -304,6 +305,64 @@
       </div>
     </section>
 
+    <!-- Submission form (auth only) -->
+    <section class="submit-section hidden" data-auth="only" id="submitSection">
+      <h2 class="section-title">Предложить публикацию</h2>
+      <div class="submit-card">
+        <h3>Новая публикация</h3>
+        <form id="submitForm">
+          <div class="form-group">
+            <label class="form-label">Заголовок *</label>
+            <input class="form-input" id="sub_title" required placeholder="Название вашего материала">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Описание *</label>
+            <textarea class="form-textarea form-input" id="sub_desc" required placeholder="Опишите, что вы видели или хотите рассказать..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-select" id="sub_category">
+              <option value="other">Другое</option>
+              <option value="anomaly">Аномалия</option>
+              <option value="incident">Инцидент</option>
+              <option value="document">Документ</option>
+              <option value="photo">Фотоматериал</option>
+              <option value="operation">Операция</option>
+              <option value="personnel">Персонал</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Теги</label>
+            <div class="tags-input-wrap" id="tagsWrap">
+              <input type="text" id="sub_tags_input" placeholder="Введите тег и нажмите Enter">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Медиа (фото / видео, макс. 10 МБ)</label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <div class="upload-icon">&#128206;</div>
+              <div>Нажмите для загрузки или перетащите файл</div>
+              <div class="upload-hint">JPEG, PNG, GIF, WebP, MP4, WebM</div>
+              <input type="file" id="sub_file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm" style="display:none;">
+              <div class="file-preview hidden" id="filePreview"></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Отправить на проверку</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Approved submissions feed -->
+    <section id="feedSection" style="margin:40px 0;">
+      <h2 class="section-title">Публикации сообщества</h2>
+      <div class="feed-grid" id="feedGrid">
+        <div class="empty-state" id="feedEmpty">
+          <div class="empty-icon">&#128240;</div>
+          <p>Пока нет опубликованных материалов от сообщества</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Quick terminal -->
     <section class="quick-terminal">
       <h2 class="section-title">Быстрый терминал</h2>
@@ -331,10 +390,14 @@
   </footer>
 
   <script type="module">
-    import { initApp, showToast } from "./js/app.js";
+    import { initApp, showToast, formatDate, formatTimeAgo } from "./js/app.js";
     import { logout } from "./js/auth.js";
     import { initTerminalBoot } from "./js/effects.js";
     import { getStats, searchArchive } from "./js/archive.js";
+    import {
+      CATEGORIES, createSubmission, getSubmissions,
+      uploadSubmissionMedia, validateFile
+    } from "./js/submissions.js";
 
     const bootLines = [
       "[OK] Инициализация ядра H-ARCHIVES...",
@@ -400,6 +463,155 @@
       }
     }
     loadStats();
+    loadFeed();
+
+    // Suggest publication button scrolls to form
+    document.getElementById("heroSuggestBtn")?.addEventListener("click", () => {
+      document.getElementById("submitSection")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Tags input
+    const tagsWrap = document.getElementById("tagsWrap");
+    const tagsInput = document.getElementById("sub_tags_input");
+    const tags = [];
+    if (tagsInput) {
+      tagsInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === ",") {
+          e.preventDefault();
+          const val = tagsInput.value.trim().replace(/,/g, "");
+          if (val && !tags.includes(val) && tags.length < 10) {
+            tags.push(val);
+            renderTags();
+          }
+          tagsInput.value = "";
+        }
+      });
+    }
+    function renderTags() {
+      tagsWrap.querySelectorAll(".tag-chip").forEach(c => c.remove());
+      tags.forEach((t, i) => {
+        const chip = document.createElement("span");
+        chip.className = "tag-chip";
+        chip.innerHTML = `${t} <button type="button" data-i="${i}">&times;</button>`;
+        chip.querySelector("button").addEventListener("click", () => {
+          tags.splice(i, 1);
+          renderTags();
+        });
+        tagsWrap.insertBefore(chip, tagsInput);
+      });
+    }
+
+    // File upload area
+    const fileArea = document.getElementById("fileUploadArea");
+    const fileInput = document.getElementById("sub_file");
+    const filePreview = document.getElementById("filePreview");
+    if (fileArea && fileInput) {
+      fileArea.addEventListener("click", () => fileInput.click());
+      fileArea.addEventListener("dragover", (e) => { e.preventDefault(); fileArea.style.borderColor = "var(--accent)"; });
+      fileArea.addEventListener("dragleave", () => { fileArea.style.borderColor = ""; });
+      fileArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileArea.style.borderColor = "";
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          showFilePreview(e.dataTransfer.files[0]);
+        }
+      });
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) showFilePreview(fileInput.files[0]);
+      });
+    }
+    function showFilePreview(file) {
+      fileArea.classList.add("has-file");
+      filePreview.classList.remove("hidden");
+      if (file.type.startsWith("image/")) {
+        const url = URL.createObjectURL(file);
+        filePreview.innerHTML = `<img src="${url}" alt=""><span class="file-name">${file.name} (${(file.size/1024/1024).toFixed(1)} МБ)</span>`;
+      } else {
+        filePreview.innerHTML = `<span class="file-name">&#127909; ${file.name} (${(file.size/1024/1024).toFixed(1)} МБ)</span>`;
+      }
+    }
+
+    // Submit form
+    let currentAuthUser = null;
+    let currentAuthProfile = null;
+    document.addEventListener("authChanged", (e) => {
+      currentAuthUser = e.detail.user;
+      currentAuthProfile = e.detail.profile;
+    });
+
+    document.getElementById("submitForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentAuthUser) { showToast("Войдите для отправки", "error"); return; }
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "Отправка...";
+      try {
+        let mediaUrl = "";
+        let mediaType = "";
+        const file = fileInput?.files[0];
+        if (file) {
+          validateFile(file);
+          mediaUrl = await uploadSubmissionMedia(file, currentAuthUser.uid);
+          mediaType = file.type.startsWith("video/") ? "video" : "image";
+        }
+        await createSubmission({
+          title: document.getElementById("sub_title").value.trim(),
+          description: document.getElementById("sub_desc").value.trim(),
+          category: document.getElementById("sub_category").value,
+          tags: [...tags],
+          mediaUrl,
+          mediaType
+        }, currentAuthUser.uid, currentAuthProfile?.displayName || currentAuthUser.displayName || "Аноним");
+        showToast("Ваш пост успешно отправлен на проверку", "success");
+        document.getElementById("submitForm").reset();
+        tags.length = 0;
+        renderTags();
+        fileArea?.classList.remove("has-file");
+        filePreview?.classList.add("hidden");
+        filePreview.innerHTML = "";
+      } catch (err) {
+        showToast(err.message || "Ошибка отправки", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Отправить на проверку";
+      }
+    });
+
+    // Load approved feed
+    async function loadFeed() {
+      try {
+        const posts = await getSubmissions("approved", 12);
+        const grid = document.getElementById("feedGrid");
+        const empty = document.getElementById("feedEmpty");
+        if (!posts.length) { empty.classList.remove("hidden"); return; }
+        empty.classList.add("hidden");
+        grid.innerHTML = posts.map(p => {
+          const catName = CATEGORIES.find(c => c.id === p.category)?.name || p.category;
+          const dateStr = p.createdAt ? formatDate(p.createdAt) : "";
+          const mediaHtml = p.mediaUrl
+            ? (p.mediaType === "video"
+              ? `<video class="feed-card-media" src="${p.mediaUrl}" controls></video>`
+              : `<img class="feed-card-media" src="${p.mediaUrl}" alt="${p.title}">`)
+            : "";
+          const tagsHtml = (p.tags || []).map(t => `<span class="tag-chip">${t}</span>`).join("");
+          return `<div class="feed-card">
+            ${mediaHtml}
+            <div class="feed-card-body">
+              <div class="feed-card-title">${p.title}</div>
+              <div class="feed-card-desc">${p.description}</div>
+              ${tagsHtml ? `<div class="mod-card-tags">${tagsHtml}</div>` : ""}
+              <div class="feed-card-footer">
+                <span class="feed-author">&#9998; Автор: ${p.authorName}</span>
+                <span>${catName} &bull; ${dateStr}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join("");
+      } catch (err) {
+        console.log("Feed load error:", err.message);
+      }
+    }
 
     // Quick terminal
     const termInput = document.getElementById("quickTermInput");

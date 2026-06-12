@@ -116,7 +116,8 @@
 
     <!-- Section tabs -->
     <div class="tabs" id="adminTabs">
-      <button class="tab-btn active" data-type="documents">Документы</button>
+      <button class="tab-btn active" data-type="submissions">Предложенное <span class="pending-count hidden" id="pendingBadge">0</span></button>
+      <button class="tab-btn" data-type="documents">Документы</button>
       <button class="tab-btn" data-type="photos">Фото</button>
       <button class="tab-btn" data-type="dossiers">Досье</button>
       <button class="tab-btn" data-type="anomalies">Аномалии</button>
@@ -126,6 +127,18 @@
       <button class="tab-btn" data-type="timeline">Хронология</button>
     </div>
 
+    <!-- Moderation queue -->
+    <div id="modQueueSection">
+      <div class="admin-create-bar">
+        <span style="font-size:0.85rem;color:var(--muted);">&#128203; Очередь модерации</span>
+      </div>
+      <div class="mod-queue" id="modQueue">
+        <div style="text-align:center;padding:30px;color:var(--faint);">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- Archive records management -->
+    <div id="archiveManageSection" class="hidden">
     <div class="admin-create-bar">
       <button class="btn btn-primary btn-sm" id="addRecordBtn">+ Создать запись</button>
     </div>
@@ -150,23 +163,30 @@
       </div>
     </div>
 
+    </div>
     <div id="modalContainer"></div>
   </main>
 
   <footer class="site-footer"><p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н</p></footer>
 
   <script type="module">
-    import { initApp, showToast, formatDate, getClearanceBadge, getStatusBadge, getCurrentProfile } from "./js/app.js";
+    import { initApp, showToast, formatDate, formatTimeAgo, getClearanceBadge, getStatusBadge, getCurrentProfile } from "./js/app.js";
     import { logout } from "./js/auth.js";
     import { getItems, createItem, updateItem, deleteItem, uploadFile, getStats, CLEARANCE_LEVELS, STATUSES } from "./js/archive.js";
+    import {
+      CATEGORIES, REJECTION_TEMPLATES,
+      getSubmissions, approveSubmission, rejectSubmission, editSubmission, deleteSubmission,
+      getPendingCount
+    } from "./js/submissions.js";
 
     initApp();
 
     document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
     document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
 
-    let currentType = "documents";
+    let currentType = "submissions";
     let items = [];
+    let pendingSubs = [];
     let adminProfile = null;
 
     // Auth gate
@@ -178,7 +198,8 @@
         document.getElementById("adminPanel").classList.remove("hidden");
         document.getElementById("adminName").textContent = profile.displayName || profile.email;
         loadStats();
-        loadItems();
+        loadModQueue();
+        loadPendingBadge();
       } else {
         document.getElementById("adminDenied").classList.remove("hidden");
         document.getElementById("adminPanel").classList.add("hidden");
@@ -200,9 +221,181 @@
         tabs.forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
         currentType = tab.dataset.type;
-        loadItems();
+        if (currentType === "submissions") {
+          document.getElementById("modQueueSection").classList.remove("hidden");
+          document.getElementById("archiveManageSection").classList.add("hidden");
+          loadModQueue();
+        } else {
+          document.getElementById("modQueueSection").classList.add("hidden");
+          document.getElementById("archiveManageSection").classList.remove("hidden");
+          loadItems();
+        }
       });
     });
+
+    async function loadPendingBadge() {
+      try {
+        const count = await getPendingCount();
+        const badge = document.getElementById("pendingBadge");
+        if (count > 0) {
+          badge.textContent = count;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      } catch {}
+    }
+
+    async function loadModQueue() {
+      const queue = document.getElementById("modQueue");
+      queue.innerHTML = '<div style="text-align:center;padding:30px;color:var(--faint);">\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430...</div>';
+      try {
+        pendingSubs = await getSubmissions("pending", 100);
+        renderModQueue();
+      } catch (err) {
+        queue.innerHTML = `<div style="text-align:center;color:var(--accent);padding:20px;">\u041e\u0448\u0438\u0431\u043a\u0430: ${err.message}</div>`;
+      }
+    }
+
+    function renderModQueue() {
+      const queue = document.getElementById("modQueue");
+      if (!pendingSubs.length) {
+        queue.innerHTML = '<div class="empty-state"><div class="empty-icon">&#10004;</div><p>\u041d\u0435\u0442 \u043f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u0439 \u043d\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438</p></div>';
+        return;
+      }
+      queue.innerHTML = pendingSubs.map(s => {
+        const catLabel = CATEGORIES.find(c => c.id === s.category)?.name || s.category || '---';
+        const dateStr = s.createdAt ? formatDate(s.createdAt) : '---';
+        const tagsHtml = (s.tags || []).map(t => `<span class="tag-chip">${t}</span>`).join('');
+        const mediaHtml = s.mediaUrl
+          ? (s.mediaType === 'video'
+            ? `<div class="mod-card-media"><video src="${s.mediaUrl}" controls></video></div>`
+            : `<div class="mod-card-media"><img src="${s.mediaUrl}" alt=""></div>`)
+          : '';
+        return `<div class="mod-card" data-sid="${s.id}">
+          <div class="mod-card-header">
+            <div class="mod-card-title">${s.title}</div>
+            <span class="badge badge-archived">\u041d\u0410 \u041f\u0420\u041e\u0412\u0415\u0420\u041a\u0415</span>
+          </div>
+          <div class="mod-card-meta">
+            <span>&#128100; ${s.authorName}</span>
+            <span>&#128197; ${dateStr}</span>
+            <span>&#128193; ${catLabel}</span>
+          </div>
+          <div class="mod-card-desc">${s.description}</div>
+          ${mediaHtml}
+          ${tagsHtml ? `<div class="mod-card-tags">${tagsHtml}</div>` : ''}
+          <div class="mod-card-actions">
+            <button class="btn btn-sm btn-approve mod-approve" data-id="${s.id}">&#10004; \u041e\u0434\u043e\u0431\u0440\u0438\u0442\u044c</button>
+            <button class="btn btn-sm btn-reject mod-reject" data-id="${s.id}">&#10006; \u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c</button>
+            <button class="btn btn-sm btn-edit-mod mod-edit" data-id="${s.id}">&#9998; \u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c</button>
+          </div>
+        </div>`;
+      }).join('');
+
+      queue.querySelectorAll('.mod-approve').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('\u041e\u0434\u043e\u0431\u0440\u0438\u0442\u044c \u043f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u044e?')) return;
+          try {
+            await approveSubmission(btn.dataset.id, adminProfile.uid);
+            showToast('\u041f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u044f \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u0430', 'success');
+            loadModQueue();
+            loadPendingBadge();
+          } catch (err) { showToast('\u041e\u0448\u0438\u0431\u043a\u0430: ' + err.message, 'error'); }
+        });
+      });
+
+      queue.querySelectorAll('.mod-reject').forEach(btn => {
+        btn.addEventListener('click', () => openRejectModal(btn.dataset.id));
+      });
+
+      queue.querySelectorAll('.mod-edit').forEach(btn => {
+        btn.addEventListener('click', () => openEditSubmissionModal(btn.dataset.id));
+      });
+    }
+
+    function openRejectModal(subId) {
+      const sub = pendingSubs.find(s => s.id === subId);
+      if (!sub) return;
+      const modal = document.getElementById('modalContainer');
+      const templatesHtml = REJECTION_TEMPLATES.map((t, i) =>
+        `<label style="display:block;padding:6px 0;cursor:pointer;"><input type="radio" name="rejectReason" value="${t}" ${i === 0 ? 'checked' : ''}> ${t}</label>`
+      ).join('');
+      modal.innerHTML = `<div class="modal-overlay active" onclick="if(event.target===this)this.remove()"><div class="modal-card">
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+        <h2 style="font-family:var(--font-display);margin-bottom:16px;color:var(--accent);">\u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c: ${sub.title}</h2>
+        <form id="rejectForm">
+          <div class="form-group">
+            <label class="form-label">\u041f\u0440\u0438\u0447\u0438\u043d\u0430 \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0438\u044f</label>
+            ${templatesHtml}
+            <div style="margin-top:10px;">
+              <label class="form-label">\u0421\u0432\u043e\u044f \u043f\u0440\u0438\u0447\u0438\u043d\u0430</label>
+              <input class="form-input" id="customReason" placeholder="\u0418\u043b\u0438 \u0432\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0432\u043e\u044e...">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-danger btn-full" style="margin-top:12px;">\u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c</button>
+        </form>
+      </div></div>`;
+
+      document.getElementById('rejectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const custom = document.getElementById('customReason').value.trim();
+        const selected = document.querySelector('input[name="rejectReason"]:checked')?.value;
+        const reason = custom || selected || REJECTION_TEMPLATES[0];
+        try {
+          await rejectSubmission(subId, adminProfile.uid, reason);
+          showToast('\u041f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u044f \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0430', 'success');
+          document.querySelector('.modal-overlay')?.remove();
+          loadModQueue();
+          loadPendingBadge();
+        } catch (err) { showToast('\u041e\u0448\u0438\u0431\u043a\u0430: ' + err.message, 'error'); }
+      });
+    }
+
+    function openEditSubmissionModal(subId) {
+      const sub = pendingSubs.find(s => s.id === subId);
+      if (!sub) return;
+      const modal = document.getElementById('modalContainer');
+      modal.innerHTML = `<div class="modal-overlay active" onclick="if(event.target===this)this.remove()"><div class="modal-card">
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+        <h2 style="font-family:var(--font-display);margin-bottom:16px;">\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c: ${sub.title}</h2>
+        <form id="editSubForm">
+          <div class="form-group"><label class="form-label">\u0417\u0430\u0433\u043e\u043b\u043e\u0432\u043e\u043a</label><input class="form-input" id="es_title" value="${sub.title || ''}"></div>
+          <div class="form-group"><label class="form-label">\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435</label><textarea class="form-textarea form-input" id="es_desc">${sub.description || ''}</textarea></div>
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c</button>
+            <button type="button" class="btn btn-approve" id="editAndApproveBtn" style="flex:1;">\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438 \u043e\u0434\u043e\u0431\u0440\u0438\u0442\u044c</button>
+          </div>
+        </form>
+      </div></div>`;
+
+      document.getElementById('editSubForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await editSubmission(subId, {
+            title: document.getElementById('es_title').value.trim(),
+            description: document.getElementById('es_desc').value.trim()
+          });
+          showToast('\u041f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u044f \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0430', 'success');
+          document.querySelector('.modal-overlay')?.remove();
+          loadModQueue();
+        } catch (err) { showToast('\u041e\u0448\u0438\u0431\u043a\u0430: ' + err.message, 'error'); }
+      });
+
+      document.getElementById('editAndApproveBtn').addEventListener('click', async () => {
+        try {
+          await editSubmission(subId, {
+            title: document.getElementById('es_title').value.trim(),
+            description: document.getElementById('es_desc').value.trim()
+          });
+          await approveSubmission(subId, adminProfile.uid);
+          showToast('\u041e\u0442\u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0438 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u043e', 'success');
+          document.querySelector('.modal-overlay')?.remove();
+          loadModQueue();
+          loadPendingBadge();
+        } catch (err) { showToast('\u041e\u0448\u0438\u0431\u043a\u0430: ' + err.message, 'error'); }
+      });
+    }
 
     async function loadItems() {
       const tbody = document.getElementById("adminTableBody");
