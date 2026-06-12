@@ -1,3 +1,7 @@
+let _noisePaused = false;
+
+function setNoisePaused(paused) { _noisePaused = paused; }
+
 function initNoise(canvasId) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -16,7 +20,7 @@ function initNoise(canvasId) {
 
   function draw() {
     frame++;
-    if (frame % 3 !== 0) { requestAnimationFrame(draw); return; }
+    if (_noisePaused || frame % 3 !== 0) { requestAnimationFrame(draw); return; }
     const imageData = ctx.createImageData(w, h);
     const buf = new Uint32Array(imageData.data.buffer);
     for (let i = 0, len = buf.length; i < len; i++) {
@@ -99,4 +103,4 @@ function initCRTFlicker() {
   }, 2000);
 }
 
-export { initNoise, initGlitch, typeWriter, initTerminalBoot, flashScreen, initCRTFlicker };
+export { initNoise, initGlitch, typeWriter, initTerminalBoot, flashScreen, initCRTFlicker, setNoisePaused };
