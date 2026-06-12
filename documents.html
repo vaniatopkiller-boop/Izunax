@@ -61,6 +61,7 @@
 
     <div class="grid-3" id="itemsGrid"><div class="loading-spinner"></div></div>
     <div id="modalContainer"></div>
+    <button class="fab hidden" data-auth="admin" id="fabCreate" title="Создать запись">+</button>
   </main>
 
   <footer class="site-footer"><p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н</p></footer>
@@ -167,6 +168,7 @@
     });
 
     load();
+    document.getElementById("fabCreate")?.addEventListener("click", () => document.getElementById("createBtn")?.click());
   </script>
 </body>
 </html>

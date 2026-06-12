@@ -7,10 +7,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/effects.css">
   <style>
-    .profile-page {
-      max-width: 600px;
-      margin: 40px auto;
-    }
+    .profile-page { max-width: 600px; margin: 40px auto; }
     .profile-card {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -19,69 +16,53 @@
       text-align: center;
     }
     .profile-avatar {
-      width: 100px;
-      height: 100px;
+      width: 100px; height: 100px; border-radius: 50%;
+      border: 3px solid var(--accent); background: var(--bg3);
+      display: grid; place-items: center; margin: 0 auto 16px;
+      font-size: 2.5rem; color: var(--accent); overflow: hidden;
+      position: relative; cursor: pointer;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-avatar .avatar-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+      display: none; place-items: center; font-size: 1.2rem; color: #fff;
       border-radius: 50%;
-      border: 3px solid var(--accent);
-      background: var(--bg3);
-      display: grid;
-      place-items: center;
-      margin: 0 auto 16px;
-      font-size: 2.5rem;
-      color: var(--accent);
-      overflow: hidden;
     }
-    .profile-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .profile-name {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      margin-bottom: 4px;
-    }
-    .profile-email {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-    }
-    .profile-badges {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .profile-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 20px 0;
-    }
-    .p-stat {
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .p-stat-num {
-      font-size: 1.3rem;
-      font-weight: 900;
-      color: var(--accent);
-    }
-    .p-stat-label {
-      font-size: 0.75rem;
-      color: var(--faint);
-    }
-    .profile-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
+    .profile-avatar:hover .avatar-overlay { display: grid; }
+    .profile-name { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 4px; }
+    .profile-email { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+    .profile-badges { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+    .p-stat { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 14px; }
+    .p-stat-num { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
+    .p-stat-label { font-size: 0.75rem; color: var(--faint); }
+    .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .not-logged-in { text-align: center; padding: 60px 20px; }
+
+    .edit-section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 28px;
       margin-top: 20px;
+      text-align: left;
     }
-    .not-logged-in {
-      text-align: center;
-      padding: 60px 20px;
+    .edit-section h3 {
+      font-family: var(--font-display);
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    .edit-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .edit-row .form-group { flex: 1; margin: 0; }
+    .edit-row .btn { flex-shrink: 0; height: 42px; }
+    @media (max-width: 480px) {
+      .edit-row { flex-direction: column; align-items: stretch; }
+      .profile-stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -124,7 +105,11 @@
 
     <div class="profile-page hidden" id="profileSection">
       <div class="profile-card">
-        <div class="profile-avatar" id="avatar">H</div>
+        <div class="profile-avatar" id="avatar" title="Нажмите, чтобы сменить фото">
+          <span>H</span>
+          <div class="avatar-overlay">📷</div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+        </div>
         <div class="profile-name" id="profileName">---</div>
         <div class="profile-email" id="profileEmail">---</div>
         <div class="profile-badges" id="profileBadges"></div>
@@ -139,6 +124,31 @@
           <button class="btn btn-danger btn-sm" id="profileLogout">Выйти</button>
         </div>
       </div>
+
+      <div class="edit-section">
+        <h3>Редактировать профиль</h3>
+        <div class="edit-row">
+          <div class="form-group">
+            <label class="form-label">Позывной</label>
+            <input class="form-input" id="editName" placeholder="Ваш позывной">
+          </div>
+          <button class="btn btn-primary btn-sm" id="saveName">Сохранить</button>
+        </div>
+        <div class="edit-row">
+          <div class="form-group">
+            <label class="form-label">Фото профиля</label>
+            <input type="file" class="form-input" id="editPhoto" accept="image/*">
+          </div>
+          <button class="btn btn-primary btn-sm" id="savePhoto">Загрузить</button>
+        </div>
+        <div class="edit-row">
+          <div class="form-group">
+            <label class="form-label">Новый пароль</label>
+            <input type="password" class="form-input" id="editPassword" placeholder="Минимум 6 символов">
+          </div>
+          <button class="btn btn-primary btn-sm" id="savePassword">Сменить</button>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -146,35 +156,124 @@
 
   <script type="module">
     import { initApp, showToast, formatDate, getClearanceBadge } from "./js/app.js";
-    import { logout } from "./js/auth.js";
+    import { logout, ensureUserProfile } from "./js/auth.js";
+    import {
+      auth, db, storage, updateProfile,
+      doc, setDoc, serverTimestamp,
+      ref, uploadBytes, getDownloadURL
+    } from "./js/firebase-config.js";
+    import { updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     initApp();
+
+    let currentUser = null;
+    let currentProfile = null;
 
     document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
     document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
     document.getElementById("profileLogout")?.addEventListener("click", async () => { await logout(); window.location.href = "index.html"; });
 
+    function renderProfile(profile, user) {
+      document.getElementById("notLoggedIn").classList.add("hidden");
+      document.getElementById("profileSection").classList.remove("hidden");
+      document.getElementById("profileName").textContent = profile.displayName || "Оператор";
+      document.getElementById("profileEmail").textContent = profile.email;
+      document.getElementById("pClearance").textContent = profile.clearanceLevel || 1;
+      document.getElementById("pRole").textContent = profile.role === "organizer" ? "Организатор" : "Гость";
+      document.getElementById("pJoined").textContent = formatDate(profile.createdAt);
+      document.getElementById("profileBadges").innerHTML = getClearanceBadge(profile.clearanceLevel || 1);
+      document.getElementById("editName").value = profile.displayName || "";
+
+      const avatarEl = document.getElementById("avatar");
+      if (user.photoURL) {
+        avatarEl.querySelector("span").style.display = "none";
+        const existing = avatarEl.querySelector("img");
+        if (existing) existing.remove();
+        const img = document.createElement("img");
+        img.src = user.photoURL;
+        img.alt = "";
+        avatarEl.insertBefore(img, avatarEl.firstChild);
+      } else {
+        avatarEl.querySelector("span").style.display = "";
+        avatarEl.querySelector("span").textContent = (profile.displayName || "H").charAt(0).toUpperCase();
+        const existing = avatarEl.querySelector("img");
+        if (existing) existing.remove();
+      }
+    }
+
     document.addEventListener("authChanged", (e) => {
       const { profile, user, loggedIn } = e.detail;
       if (loggedIn && profile) {
-        document.getElementById("notLoggedIn").classList.add("hidden");
-        document.getElementById("profileSection").classList.remove("hidden");
-        document.getElementById("profileName").textContent = profile.displayName || "Оператор";
-        document.getElementById("profileEmail").textContent = profile.email;
-        document.getElementById("pClearance").textContent = profile.clearanceLevel || 1;
-        document.getElementById("pRole").textContent = profile.role === "organizer" ? "Организатор" : "Гость";
-        document.getElementById("pJoined").textContent = formatDate(profile.createdAt);
-        document.getElementById("profileBadges").innerHTML = getClearanceBadge(profile.clearanceLevel || 1);
-
-        const avatarEl = document.getElementById("avatar");
-        if (user.photoURL) {
-          avatarEl.innerHTML = `<img src="${user.photoURL}" alt="">`;
-        } else {
-          avatarEl.textContent = (profile.displayName || "H").charAt(0).toUpperCase();
-        }
+        currentUser = user;
+        currentProfile = profile;
+        renderProfile(profile, user);
       } else {
         document.getElementById("notLoggedIn").classList.remove("hidden");
         document.getElementById("profileSection").classList.add("hidden");
+      }
+    });
+
+    // Avatar click → file picker
+    document.getElementById("avatar").addEventListener("click", () => {
+      document.getElementById("avatarInput").click();
+    });
+    document.getElementById("avatarInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file || !currentUser) return;
+      await uploadAvatar(file);
+    });
+
+    // Save display name
+    document.getElementById("saveName").addEventListener("click", async () => {
+      const name = document.getElementById("editName").value.trim();
+      if (!name) { showToast("Введите позывной", "error"); return; }
+      if (!currentUser) return;
+      try {
+        await updateProfile(currentUser, { displayName: name });
+        await setDoc(doc(db, "users", currentUser.uid), { displayName: name }, { merge: true });
+        currentProfile.displayName = name;
+        renderProfile(currentProfile, currentUser);
+        showToast("Позывной обновлён", "success");
+      } catch (err) { showToast("Ошибка: " + err.message, "error"); }
+    });
+
+    // Upload photo from edit section
+    document.getElementById("savePhoto").addEventListener("click", async () => {
+      const file = document.getElementById("editPhoto").files[0];
+      if (!file) { showToast("Выберите файл", "error"); return; }
+      await uploadAvatar(file);
+    });
+
+    async function uploadAvatar(file) {
+      if (!currentUser) return;
+      try {
+        showToast("Загрузка...", "info");
+        const storageRef = ref(storage, `avatars/${currentUser.uid}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        await updateProfile(currentUser, { photoURL: url });
+        await setDoc(doc(db, "users", currentUser.uid), { photoURL: url }, { merge: true });
+        currentProfile.photoURL = url;
+        renderProfile(currentProfile, currentUser);
+        showToast("Фото обновлено", "success");
+      } catch (err) { showToast("Ошибка: " + err.message, "error"); }
+    }
+
+    // Change password
+    document.getElementById("savePassword").addEventListener("click", async () => {
+      const pass = document.getElementById("editPassword").value;
+      if (!pass || pass.length < 6) { showToast("Минимум 6 символов", "error"); return; }
+      if (!currentUser) return;
+      try {
+        await updatePassword(currentUser, pass);
+        document.getElementById("editPassword").value = "";
+        showToast("Пароль обновлён", "success");
+      } catch (err) {
+        if (err.code === "auth/requires-recent-login") {
+          showToast("Выйдите и войдите заново, затем смените пароль", "error");
+        } else {
+          showToast("Ошибка: " + err.message, "error");
+        }
       }
     });
   </script>
