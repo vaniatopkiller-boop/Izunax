@@ -1,225 +1,702 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>H Archives — Розсекречені матеріали</title>
-  <meta name="description" content="Фіктивний архів організації «H» із гостьовим доступом, режимом організатора, генератором досьє та шумовими ефектами." />
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H ARCHIVES - Секретный архив организации Н</title>
+  <meta name="description" content="Секретный архив организации Н. Рассекреченные материалы, аномалии, операции, инциденты и архивные документы.">
+  <meta property="og:title" content="H ARCHIVES - Секретный архив">
+  <meta property="og:description" content="Рассекреченные материалы организации Н">
+  <meta name="theme-color" content="#cf1117">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <link rel="stylesheet" href="css/terminal.css">
+  <style>
+    .hero {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+    .hero-eyebrow {
+      color: #ff5b60;
+      letter-spacing: 0.3em;
+      font-size: 0.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 10vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero .lead {
+      max-width: 600px;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .hero-status {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .status-pill {
+      font-size: 0.72rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      color: #aaa;
+      letter-spacing: 0.1em;
+    }
+    .status-pill.live {
+      border-color: rgba(207, 17, 23, 0.5);
+      color: #ff8084;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 40px 0;
+    }
+    .feature-card {
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+    .feature-card .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      background: rgba(207, 17, 23, 0.1);
+      border: 1px solid rgba(207, 17, 23, 0.18);
+      color: #ff7f83;
+      font-size: 1.3rem;
+    }
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .section-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    .section-link:hover {
+      border-color: var(--accent-dim);
+      transform: translateY(-2px);
+      color: var(--text);
+    }
+    .section-link .s-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: rgba(207, 17, 23, 0.08);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .section-link .s-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+    }
+    .section-link .s-count {
+      font-size: 0.75rem;
+      color: var(--faint);
+    }
+    .quick-terminal {
+      margin: 40px 0;
+    }
+    @media (max-width: 768px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .sections-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .sections-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <canvas id="noise"></canvas>
   <div class="overlay scanlines"></div>
   <div class="overlay vignette"></div>
+  <div class="scanline-bar"></div>
+  <div class="classified-watermark">СЕКРЕТНО</div>
 
-  <header class="topbar">
-    <div class="brand">
+  <!-- Boot screen -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-logo glitch" data-text="H">H</div>
+    <div class="boot-text" id="bootText"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header" id="siteHeader" style="display:none;">
+    <a href="index.html" class="brand">
       <div class="brand-mark">H</div>
       <div>
         <div class="brand-title">H ARCHIVES</div>
-        <div class="brand-subtitle">LEAKED DATA COLLECTION</div>
+        <div class="brand-subtitle">СЕКРЕТНЫЙ АРХИВ</div>
       </div>
-    </div>
-
-    <nav class="nav">
-      <a href="#home">Головна</a>
-      <a href="#archives">Архіви</a>
-      <a href="#rules">Правила</a>
-      <a href="#contacts">Контакти</a>
-      <button class="ghost-btn" id="openLogin">Увійти</button>
-      <button class="lang-btn" id="langBtn">UK ▾</button>
+    </a>
+    <nav class="nav" id="desktopNav">
+      <a href="archive.html">Архив</a>
+      <a href="documents.html">Документы</a>
+      <a href="dossiers.html">Досье</a>
+      <a href="anomalies.html">Аномалии</a>
+      <a href="terminal.html">Терминал</a>
+      <a href="search.html">Поиск</a>
+      <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+      <a href="profile.html" data-auth="only" class="hidden nav-btn">Профиль</a>
+      <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
+      <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
     </nav>
+    <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
   </header>
 
-  <main>
-    <section class="hero" id="home">
-      <div class="hero-copy">
-        <div class="eyebrow">ОПЕРАЦІЯ: СЕКРЕТНО / ДОСТУП ОБМЕЖЕНО</div>
-        <h1><span class="accent">H</span> ARCHIVES</h1>
-        <p class="lead">
-          Збірник розсекречених документів, фото, стенограм і матеріалів організації «H».
-          Гостям — читання та пошук. Організаторам — завантаження, створення досьє та керування архівом.
-        </p>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="archive.html">Архив</a>
+    <a href="documents.html">Документы</a>
+    <a href="photos.html">Фотоархив</a>
+    <a href="dossiers.html">Досье</a>
+    <a href="anomalies.html">Аномалии</a>
+    <a href="incidents.html">Инциденты</a>
+    <a href="operations.html">Операции</a>
+    <a href="personnel.html">Персонал</a>
+    <a href="timeline.html">Хронология</a>
+    <a href="terminal.html">Терминал</a>
+    <a href="search.html">Поиск</a>
+    <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+    <a href="profile.html" data-auth="only" class="hidden">Профиль</a>
+    <a href="login.html" data-auth="login">Войти</a>
+    <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
+  </nav>
 
-        <div class="cta-row">
-          <button class="primary-btn" id="guestModeBtn">Увійти як гість</button>
-          <button class="secondary-btn" id="orgModeBtn">Увійти як організатор</button>
-        </div>
-
-        <div class="status-row">
-          <div class="status-pill active">LIVE STATIC</div>
-          <div class="status-pill">AUTO STAMP</div>
-          <div class="status-pill">FILE VAULT</div>
-        </div>
+  <!-- Main content -->
+  <main class="page-wrap" id="mainContent" style="display:none;">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-eyebrow">ОРГАНИЗАЦИЯ Н / ДОСТУП ОГРАНИЧЕН</div>
+      <h1><span class="accent">H</span> ARCHIVES</h1>
+      <p class="lead">
+        Секретный архив рассекреченных документов, аномалий, операций и инцидентов организации «Н».
+        Гостям доступен просмотр открытых материалов. Организаторам — полное управление архивом.
+      </p>
+      <div class="hero-cta">
+        <a href="archive.html" class="btn btn-primary">Открыть архив</a>
+        <a href="terminal.html" class="btn btn-secondary">Терминал доступа</a>
+        <a href="login.html" data-auth="login" class="btn btn-ghost">Авторизация</a>
+        <button class="suggest-btn hidden" data-auth="only" id="heroSuggestBtn">&#9998; Предложить публикацию</button>
       </div>
-
-      <aside class="login-panel glass" id="loginPanel">
-        <div class="tabs">
-          <button class="tab active" data-mode="guest">Реєстрація читача (гість)</button>
-          <button class="tab" data-mode="org">Вхід для організатора</button>
-        </div>
-
-        <div class="panel-inner" id="guestForm">
-          <h2>Реєстрація читача (гість)</h2>
-          <p>Створіть обліковий запис для доступу до відкритих архівів.</p>
-          <form id="guestRegister">
-            <input type="text" placeholder="Ім'я користувача" required />
-            <input type="email" placeholder="Електронна пошта (опціонально)" />
-            <input type="password" placeholder="Пароль" required />
-            <button type="submit" class="primary-btn full">Зареєструватися</button>
-          </form>
-          <div class="hint">Уже маєте акаунт? <a href="#" id="switchToLogin">Увійти</a></div>
-        </div>
-
-        <div class="panel-inner hidden" id="orgForm">
-          <h2>Доступ організатора</h2>
-          <p>Підвищений рівень доступу: завантаження файлів, генератор документів, редагування.</p>
-          <form id="orgLogin">
-            <input type="text" id="orgUser" placeholder="Логін" autocomplete="off" required />
-            <input type="password" id="orgPass" placeholder="Пароль" autocomplete="off" required />
-            <button type="submit" class="danger-btn full">Увійти</button>
-          </form>
-          <div class="hint">Демо-режим: змініть логін/пароль у файлі <code>script.js</code>.</div>
-        </div>
-
-        <div class="session-bar">
-          <span id="sessionState">Сесія: гість неактивний</span>
-          <button class="mini-btn" id="logoutBtn">Вийти</button>
-        </div>
-      </aside>
-    </section>
-
-    <section class="features">
-      <article class="feature-card glass">
-        <div class="icon">⟡</div>
-        <h3>Злиті документи</h3>
-        <p>Внутрішні накази, звіти, листування і файли з мітками секретності.</p>
-      </article>
-      <article class="feature-card glass">
-        <div class="icon">☰</div>
-        <h3>Прозорий доступ</h3>
-        <p>Пошук, фільтри, режим читача та швидке відкриття досьє.</p>
-      </article>
-      <article class="feature-card glass">
-        <div class="icon">◉</div>
-        <h3>Анонімність</h3>
-        <p>Увімкніть шум, редагування та затемнення для потрібної атмосфери.</p>
-      </article>
-    </section>
-
-    <section class="control-strip glass" id="rules">
-      <div class="control-copy">
-        <h2>Панель керування атмосферою</h2>
-        <p>Перемикачі змінюють вигляд сайту, рівень шуму та спосіб відображення документів.</p>
-      </div>
-
-      <div class="switch-grid">
-        <label class="switch">
-          <input type="checkbox" id="toggleNoise" checked />
-          <span class="slider"></span>
-          <span class="switch-label">Шум</span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="toggleScanlines" checked />
-          <span class="slider"></span>
-          <span class="switch-label">Скан-лінії</span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="toggleRedactions" checked />
-          <span class="slider"></span>
-          <span class="switch-label">Редакція</span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="toggleStamp" checked />
-          <span class="slider"></span>
-          <span class="switch-label">Печатки</span>
-        </label>
+      <div class="hero-status">
+        <span class="status-pill live">СИСТЕМА АКТИВНА</span>
+        <span class="status-pill">УРОВЕНЬ ДОПУСКА: ГОСТЬ</span>
+        <span class="status-pill">АРХИВНЫХ ОБЪЕКТОВ: <span id="totalObjects">---</span></span>
       </div>
     </section>
 
-    <section class="archives" id="archives">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">АРХІВИ ОРГАНІЗАЦІЇ «H»</div>
-          <h2>Досьє, фото, стенограми та записи</h2>
-        </div>
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-num" id="statDocs">0</div><div class="stat-label">Документов</div></div>
+      <div class="stat-card"><div class="stat-num" id="statPhotos">0</div><div class="stat-label">Фотографий</div></div>
+      <div class="stat-card"><div class="stat-num" id="statDossiers">0</div><div class="stat-label">Досье</div></div>
+      <div class="stat-card"><div class="stat-num" id="statAnomalies">0</div><div class="stat-label">Аномалий</div></div>
+      <div class="stat-card"><div class="stat-num" id="statIncidents">0</div><div class="stat-label">Инцидентов</div></div>
+      <div class="stat-card"><div class="stat-num" id="statOps">0</div><div class="stat-label">Операций</div></div>
+    </div>
 
-        <div class="tools">
-          <input type="search" id="searchInput" placeholder="Пошук по архіву..." />
-          <select id="categoryFilter">
-            <option value="all">Усі категорії</option>
-            <option value="dossier">Досьє</option>
-            <option value="photo">Фото</option>
-            <option value="audio">Аудіо</option>
-            <option value="memo">Нотатки</option>
-          </select>
-          <button class="secondary-btn" id="generateDocBtn">Згенерувати досьє</button>
+    <!-- Features -->
+    <section>
+      <h2 class="section-title">Возможности системы</h2>
+      <div class="features-grid">
+        <div class="feature-card glass">
+          <div class="icon-box">&#x2737;</div>
+          <h3>Рассекреченные материалы</h3>
+          <p>Документы, приказы, отчёты и файлы с метками секретности из архива организации.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="icon-box">&#x2630;</div>
+          <h3>Система поиска</h3>
+          <p>Полнотекстовый поиск по всем разделам архива с фильтрами по уровню допуска.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="icon-box">&#x25C9;</div>
+          <h3>Контроль доступа</h3>
+          <p>Пять уровней допуска. Организатор управляет материалами, гость — просматривает открытые.</p>
         </div>
       </div>
-
-      <div class="archive-grid" id="archiveGrid"></div>
     </section>
 
-    <section class="upload-panel glass" id="contacts">
-      <div class="upload-copy">
-        <div class="eyebrow">ЗАВАНТАЖЕННЯ ДЛЯ ОРГАНІЗАТОРА</div>
-        <h2>Додати нові матеріали</h2>
-        <p>Працює як демо-панель: файли залишаються у браузері, але виглядають як справжня система архівування.</p>
-
-        <label class="file-drop" for="fileInput">
-          <strong>Перетягніть файли сюди або натисніть для вибору</strong>
-          <span>Фото, PDF, TXT, ZIP — безпечний локальний перегляд</span>
-        </label>
-        <input id="fileInput" type="file" multiple />
+    <!-- Archive sections -->
+    <section>
+      <h2 class="section-title">Разделы архива</h2>
+      <div class="sections-grid">
+        <a href="documents.html" class="section-link">
+          <div class="s-icon">&#128196;</div>
+          <div><div class="s-name">Документы</div><div class="s-count">Приказы, отчёты, записки</div></div>
+        </a>
+        <a href="photos.html" class="section-link">
+          <div class="s-icon">&#128247;</div>
+          <div><div class="s-name">Фотоархив</div><div class="s-count">Снимки и фотоматериалы</div></div>
+        </a>
+        <a href="dossiers.html" class="section-link">
+          <div class="s-icon">&#128451;</div>
+          <div><div class="s-name">Досье</div><div class="s-count">Личные дела объектов</div></div>
+        </a>
+        <a href="anomalies.html" class="section-link">
+          <div class="s-icon">&#9888;</div>
+          <div><div class="s-name">Аномалии</div><div class="s-count">Зафиксированные аномалии</div></div>
+        </a>
+        <a href="incidents.html" class="section-link">
+          <div class="s-icon">&#128680;</div>
+          <div><div class="s-name">Инциденты</div><div class="s-count">Отчёты об инцидентах</div></div>
+        </a>
+        <a href="operations.html" class="section-link">
+          <div class="s-icon">&#127919;</div>
+          <div><div class="s-name">Операции</div><div class="s-count">Проведённые операции</div></div>
+        </a>
+        <a href="personnel.html" class="section-link">
+          <div class="s-icon">&#128100;</div>
+          <div><div class="s-name">Персонал</div><div class="s-count">Сотрудники организации</div></div>
+        </a>
+        <a href="timeline.html" class="section-link">
+          <div class="s-icon">&#128197;</div>
+          <div><div class="s-name">Хронология</div><div class="s-count">Хронология событий</div></div>
+        </a>
       </div>
+    </section>
 
-      <div class="file-list">
-        <div class="list-title">Завантажені елементи</div>
-        <div id="filePreview" class="preview-empty">Поки що файлів немає.</div>
+    <!-- Submission form (auth only) -->
+    <section class="submit-section hidden" data-auth="only" id="submitSection">
+      <h2 class="section-title">Предложить публикацию</h2>
+      <div class="submit-card">
+        <h3>Новая публикация</h3>
+        <form id="submitForm">
+          <div class="form-group">
+            <label class="form-label">Заголовок *</label>
+            <input class="form-input" id="sub_title" required placeholder="Название вашего материала">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Описание *</label>
+            <textarea class="form-textarea form-input" id="sub_desc" required placeholder="Опишите, что вы видели или хотите рассказать..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-select" id="sub_category">
+              <option value="other">Другое</option>
+              <option value="anomaly">Аномалия</option>
+              <option value="incident">Инцидент</option>
+              <option value="document">Документ</option>
+              <option value="photo">Фотоматериал</option>
+              <option value="operation">Операция</option>
+              <option value="personnel">Персонал</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Теги</label>
+            <div class="tags-input-wrap" id="tagsWrap">
+              <input type="text" id="sub_tags_input" placeholder="Введите тег и нажмите Enter">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Медиа (фото / видео, макс. 10 МБ)</label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <div class="upload-icon">&#128206;</div>
+              <div>Нажмите для загрузки или перетащите файл</div>
+              <div class="upload-hint">JPEG, PNG, GIF, WebP, MP4, WebM</div>
+              <input type="file" id="sub_file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm" style="display:none;">
+              <div class="file-preview hidden" id="filePreview"></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Отправить на проверку</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Approved submissions feed -->
+    <section id="feedSection" style="margin:40px 0;">
+      <h2 class="section-title">Публикации сообщества</h2>
+      <div class="feed-grid" id="feedGrid">
+        <div class="empty-state" id="feedEmpty">
+          <div class="empty-icon">&#128240;</div>
+          <p>Пока нет опубликованных материалов от сообщества</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick terminal -->
+    <section class="quick-terminal">
+      <h2 class="section-title">Быстрый терминал</h2>
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          <div class="terminal-title">H-ARCHIVES TERMINAL v2.1</div>
+        </div>
+        <div class="terminal-body" id="quickTermBody">
+          <div class="terminal-line"><span class="t-ok">[OK]</span> Система H-Archives запущена</div>
+          <div class="terminal-line"><span class="t-ok">[OK]</span> Подключение к базе данных установлено</div>
+          <div class="terminal-line" style="color:#666;">Введите команду. help — список команд.</div>
+        </div>
+        <div class="terminal-prompt">
+          <span class="terminal-prompt-symbol">H://&gt;</span>
+          <input type="text" class="terminal-input" id="quickTermInput" placeholder="Введите команду..." autocomplete="off">
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <p>© 2025 H Archives. Усі матеріали вигадані для атмосферного проєкту.</p>
+  <!-- Footer -->
+  <footer class="site-footer" id="siteFooter" style="display:none;">
+    <p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н &mdash; Все материалы рассекречены в демонстрационных целях</p>
   </footer>
 
-  <div class="modal hidden" id="docModal">
-    <div class="modal-card glass">
-      <button class="close-btn" id="closeModal">×</button>
-      <div class="doc-meta">
-        <span class="doc-type" id="modalType">DOSSIER</span>
-        <span class="doc-id" id="modalId">H-000</span>
-      </div>
-      <h3 id="modalTitle">Назва досьє</h3>
-      <p id="modalBody"></p>
+  <script type="module">
+    import { initApp, showToast, formatDate, formatTimeAgo } from "./js/app.js";
+    import { logout } from "./js/auth.js";
+    import { initTerminalBoot } from "./js/effects.js";
+    import { getStats, searchArchive } from "./js/archive.js";
+    import {
+      CATEGORIES, createSubmission, getSubmissions,
+      uploadSubmissionMedia, validateFile
+    } from "./js/submissions.js";
 
-      <div class="stamp-row">
-        <div class="stamp-circle" id="stampCircle">СЕКРЕТНО</div>
-        <div class="stamp-note">
-          <strong>Автоматична печатка організації «H»</strong>
-          <span>Накладається поверх прев’ю для ефекту розсекречення.</span>
-        </div>
-      </div>
-    </div>
-  </div>
+    const bootLines = [
+      "[OK] Инициализация ядра H-ARCHIVES...",
+      "[OK] Загрузка модулей безопасности...",
+      "[OK] Проверка целостности базы данных...",
+      "[OK] Подключение к серверу организации Н...",
+      "[!!] Обнаружены рассекреченные материалы",
+      "[OK] Система контроля доступа активна",
+      "[OK] Загрузка интерфейса оператора...",
+      "",
+      "    H ARCHIVES v2.1 — ДОСТУП РАЗРЕШЁН"
+    ];
 
-  <template id="docTemplate">
-    <article class="doc-card glass">
-      <div class="doc-top">
-        <span class="badge"></span>
-        <span class="locked">◎</span>
-      </div>
-      <div class="doc-title"></div>
-      <div class="doc-snippet"></div>
-      <div class="doc-footer">
-        <span class="doc-date"></span>
-        <button class="mini-btn open-doc">Відкрити</button>
-      </div>
-      <div class="stamp-overlay">H • ARCHIVE</div>
-    </article>
-  </template>
+    const bootScreen = document.getElementById("bootScreen");
+    const bootText = document.getElementById("bootText");
 
-  <script src="script.js"></script>
+    if (!sessionStorage.getItem("h_booted")) {
+      initTerminalBoot(bootText, bootLines, () => {
+        sessionStorage.setItem("h_booted", "1");
+        setTimeout(() => {
+          bootScreen.classList.add("fade-out");
+          document.getElementById("siteHeader").style.display = "";
+          document.getElementById("mainContent").style.display = "";
+          document.getElementById("siteFooter").style.display = "";
+          setTimeout(() => bootScreen.remove(), 500);
+        }, 800);
+      });
+    } else {
+      bootScreen.remove();
+      document.getElementById("siteHeader").style.display = "";
+      document.getElementById("mainContent").style.display = "";
+      document.getElementById("siteFooter").style.display = "";
+    }
+
+    initApp();
+
+    // Logout handlers
+    document.getElementById("logoutBtn")?.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await logout();
+      showToast("Сессия завершена", "info");
+    });
+    document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await logout();
+      showToast("Сессия завершена", "info");
+    });
+
+    // Load stats
+    async function loadStats() {
+      try {
+        const stats = await getStats();
+        document.getElementById("statDocs").textContent = stats.documents || 0;
+        document.getElementById("statPhotos").textContent = stats.photos || 0;
+        document.getElementById("statDossiers").textContent = stats.dossiers || 0;
+        document.getElementById("statAnomalies").textContent = stats.anomalies || 0;
+        document.getElementById("statIncidents").textContent = stats.incidents || 0;
+        document.getElementById("statOps").textContent = stats.operations || 0;
+        const total = Object.values(stats).reduce((a, b) => a + b, 0);
+        document.getElementById("totalObjects").textContent = total;
+      } catch (e) {
+        console.log("Stats unavailable:", e.message);
+      }
+    }
+    loadStats();
+    loadFeed();
+
+    // Suggest publication button scrolls to form
+    document.getElementById("heroSuggestBtn")?.addEventListener("click", () => {
+      document.getElementById("submitSection")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Tags input
+    const tagsWrap = document.getElementById("tagsWrap");
+    const tagsInput = document.getElementById("sub_tags_input");
+    const tags = [];
+    if (tagsInput) {
+      tagsInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === ",") {
+          e.preventDefault();
+          const val = tagsInput.value.trim().replace(/,/g, "");
+          if (val && !tags.includes(val) && tags.length < 10) {
+            tags.push(val);
+            renderTags();
+          }
+          tagsInput.value = "";
+        }
+      });
+    }
+    function renderTags() {
+      tagsWrap.querySelectorAll(".tag-chip").forEach(c => c.remove());
+      tags.forEach((t, i) => {
+        const chip = document.createElement("span");
+        chip.className = "tag-chip";
+        chip.innerHTML = `${t} <button type="button" data-i="${i}">&times;</button>`;
+        chip.querySelector("button").addEventListener("click", () => {
+          tags.splice(i, 1);
+          renderTags();
+        });
+        tagsWrap.insertBefore(chip, tagsInput);
+      });
+    }
+
+    // File upload area
+    const fileArea = document.getElementById("fileUploadArea");
+    const fileInput = document.getElementById("sub_file");
+    const filePreview = document.getElementById("filePreview");
+    if (fileArea && fileInput) {
+      fileArea.addEventListener("click", () => fileInput.click());
+      fileArea.addEventListener("dragover", (e) => { e.preventDefault(); fileArea.style.borderColor = "var(--accent)"; });
+      fileArea.addEventListener("dragleave", () => { fileArea.style.borderColor = ""; });
+      fileArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileArea.style.borderColor = "";
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          showFilePreview(e.dataTransfer.files[0]);
+        }
+      });
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) showFilePreview(fileInput.files[0]);
+      });
+    }
+    function showFilePreview(file) {
+      fileArea.classList.add("has-file");
+      filePreview.classList.remove("hidden");
+      if (file.type.startsWith("image/")) {
+        const url = URL.createObjectURL(file);
+        filePreview.innerHTML = `<img src="${url}" alt=""><span class="file-name">${file.name} (${(file.size/1024/1024).toFixed(1)} МБ)</span>`;
+      } else {
+        filePreview.innerHTML = `<span class="file-name">&#127909; ${file.name} (${(file.size/1024/1024).toFixed(1)} МБ)</span>`;
+      }
+    }
+
+    // Submit form
+    let currentAuthUser = null;
+    let currentAuthProfile = null;
+    document.addEventListener("authChanged", (e) => {
+      currentAuthUser = e.detail.user;
+      currentAuthProfile = e.detail.profile;
+    });
+
+    document.getElementById("submitForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentAuthUser) { showToast("Войдите для отправки", "error"); return; }
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "Отправка...";
+      try {
+        let mediaUrl = "";
+        let mediaType = "";
+        const file = fileInput?.files[0];
+        if (file) {
+          validateFile(file);
+          mediaUrl = await uploadSubmissionMedia(file, currentAuthUser.uid);
+          mediaType = file.type.startsWith("video/") ? "video" : "image";
+        }
+        await createSubmission({
+          title: document.getElementById("sub_title").value.trim(),
+          description: document.getElementById("sub_desc").value.trim(),
+          category: document.getElementById("sub_category").value,
+          tags: [...tags],
+          mediaUrl,
+          mediaType
+        }, currentAuthUser.uid, currentAuthProfile?.displayName || currentAuthUser.displayName || "Аноним");
+        showToast("Ваш пост успешно отправлен на проверку", "success");
+        document.getElementById("submitForm").reset();
+        tags.length = 0;
+        renderTags();
+        fileArea?.classList.remove("has-file");
+        filePreview?.classList.add("hidden");
+        filePreview.innerHTML = "";
+      } catch (err) {
+        showToast(err.message || "Ошибка отправки", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Отправить на проверку";
+      }
+    });
+
+    // Load approved feed
+    async function loadFeed() {
+      try {
+        const posts = await getSubmissions("approved", 12);
+        const grid = document.getElementById("feedGrid");
+        const empty = document.getElementById("feedEmpty");
+        if (!posts.length) { empty.classList.remove("hidden"); return; }
+        empty.classList.add("hidden");
+        grid.innerHTML = posts.map(p => {
+          const catName = CATEGORIES.find(c => c.id === p.category)?.name || p.category;
+          const dateStr = p.createdAt ? formatDate(p.createdAt) : "";
+          const mediaHtml = p.mediaUrl
+            ? (p.mediaType === "video"
+              ? `<video class="feed-card-media" src="${p.mediaUrl}" controls></video>`
+              : `<img class="feed-card-media" src="${p.mediaUrl}" alt="${p.title}">`)
+            : "";
+          const tagsHtml = (p.tags || []).map(t => `<span class="tag-chip">${t}</span>`).join("");
+          return `<div class="feed-card">
+            ${mediaHtml}
+            <div class="feed-card-body">
+              <div class="feed-card-title">${p.title}</div>
+              <div class="feed-card-desc">${p.description}</div>
+              ${tagsHtml ? `<div class="mod-card-tags">${tagsHtml}</div>` : ""}
+              <div class="feed-card-footer">
+                <span class="feed-author">&#9998; Автор: ${p.authorName}</span>
+                <span>${catName} &bull; ${dateStr}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join("");
+      } catch (err) {
+        console.log("Feed load error:", err.message);
+      }
+    }
+
+    // Quick terminal
+    const termInput = document.getElementById("quickTermInput");
+    const termBody = document.getElementById("quickTermBody");
+
+    const COMMANDS = {
+      help: () => [
+        "Доступные команды:",
+        "  help        — список команд",
+        "  search <запрос> — поиск по архиву",
+        "  stats       — статистика архива",
+        "  clear       — очистить терминал",
+        "  goto <раздел>  — перейти к разделу",
+        "  about       — об организации Н"
+      ],
+      about: () => [
+        "ОРГАНИЗАЦИЯ Н — секретная структура,",
+        "занимающаяся изучением аномальных явлений.",
+        "Архив содержит рассекреченные материалы",
+        "за период 2020–2025 гг."
+      ],
+      clear: () => { termBody.innerHTML = ""; return []; },
+      stats: async () => {
+        try {
+          const stats = await getStats();
+          return Object.entries(stats).map(([k, v]) => `  ${k}: ${v}`);
+        } catch { return ["Ошибка загрузки статистики"]; }
+      },
+      goto: (args) => {
+        const pages = {
+          "архив": "archive.html", "документы": "documents.html",
+          "фото": "photos.html", "досье": "dossiers.html",
+          "аномалии": "anomalies.html", "инциденты": "incidents.html",
+          "операции": "operations.html", "персонал": "personnel.html",
+          "хронология": "timeline.html", "поиск": "search.html",
+          "админ": "admin.html", "терминал": "terminal.html"
+        };
+        const page = pages[args.toLowerCase()];
+        if (page) { window.location.href = page; return [`Переход: ${args}`]; }
+        return [`Раздел не найден: ${args}`, "Доступные: " + Object.keys(pages).join(", ")];
+      },
+      search: async (args) => {
+        if (!args) return ["Использование: search <запрос>"];
+        try {
+          const results = await searchArchive(args);
+          if (!results.length) return ["Ничего не найдено по запросу: " + args];
+          return [`Найдено ${results.length} результатов:`, ...results.slice(0, 5).map(r => `  [${r.type}] ${r.code || "---"} — ${r.title || "Без названия"}`)];
+        } catch { return ["Ошибка поиска"]; }
+      }
+    };
+
+    if (termInput) {
+      termInput.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+        const val = termInput.value.trim();
+        if (!val) return;
+        termInput.value = "";
+
+        const echoLine = document.createElement("div");
+        echoLine.className = "terminal-line";
+        echoLine.innerHTML = `<span style="color:var(--accent)">H://&gt;</span> ${val}`;
+        termBody.appendChild(echoLine);
+
+        const [cmd, ...rest] = val.split(" ");
+        const args = rest.join(" ");
+        const handler = COMMANDS[cmd.toLowerCase()];
+
+        let output;
+        if (handler) {
+          output = await handler(args);
+        } else {
+          output = [`Неизвестная команда: ${cmd}`, "Введите help для списка команд"];
+        }
+
+        if (output) {
+          output.forEach(line => {
+            const el = document.createElement("div");
+            el.className = "terminal-line";
+            el.textContent = line;
+            termBody.appendChild(el);
+          });
+        }
+        termBody.scrollTop = termBody.scrollHeight;
+      });
+    }
+  </script>
 </body>
 </html>

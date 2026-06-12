@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H ARCHIVES - Терминал доступа</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <link rel="stylesheet" href="css/terminal.css">
+  <style>
+    .terminal-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .terminal-page .terminal-window {
+      max-width: 900px;
+      width: 100%;
+    }
+    .terminal-page .terminal-body {
+      min-height: 50vh;
+      max-height: 65vh;
+    }
+    .term-welcome {
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .term-help-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 2px 12px;
+      margin: 4px 0;
+    }
+    .term-help-grid .cmd { color: var(--accent); }
+    .term-help-grid .desc { color: var(--muted); }
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      color: var(--faint);
+      font-size: 0.85rem;
+    }
+
+    /* Connection animation */
+    .connection-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      transition: opacity 0.5s;
+    }
+    .connection-overlay.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .conn-logo {
+      font-size: 3rem;
+      color: var(--accent);
+      font-family: var(--font-display);
+      font-weight: 900;
+      margin-bottom: 20px;
+      text-shadow: 0 0 30px rgba(207,17,23,0.4);
+    }
+    .conn-status {
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      letter-spacing: 0.15em;
+    }
+    .conn-bar {
+      width: 240px;
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .conn-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.05s linear;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="noise"></canvas>
+  <div class="overlay scanlines"></div>
+  <div class="overlay vignette"></div>
+
+  <!-- Connection animation -->
+  <div class="connection-overlay" id="connOverlay">
+    <div class="conn-logo glitch" data-text="H">H</div>
+    <div class="conn-status" id="connStatus">ПОДКЛЮЧЕНИЕ К СЕРВЕРУ...</div>
+    <div class="conn-bar"><div class="conn-bar-fill" id="connBar"></div></div>
+  </div>
+
+  <header class="site-header" style="display:none;" id="header">
+    <a href="index.html" class="brand"><div class="brand-mark">H</div><div><div class="brand-title">H ARCHIVES</div><div class="brand-subtitle">СЕКРЕТНЫЙ АРХИВ</div></div></a>
+    <nav class="nav">
+      <a href="archive.html">Архив</a>
+      <a href="documents.html">Документы</a>
+      <a href="dossiers.html">Досье</a>
+      <a href="anomalies.html">Аномалии</a>
+      <a href="terminal.html" class="active">Терминал</a>
+      <a href="search.html">Поиск</a>
+      <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+      <a href="profile.html" data-auth="only" class="hidden nav-btn">Профиль</a>
+      <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
+      <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
+    </nav>
+    <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="archive.html">Архив</a><a href="documents.html">Документы</a><a href="photos.html">Фотоархив</a>
+    <a href="dossiers.html">Досье</a><a href="anomalies.html">Аномалии</a><a href="incidents.html">Инциденты</a>
+    <a href="operations.html">Операции</a><a href="personnel.html">Персонал</a><a href="timeline.html">Хронология</a>
+    <a href="search.html">Поиск</a>
+    <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+    <a href="profile.html" data-auth="only" class="hidden">Профиль</a>
+    <a href="login.html" data-auth="login">Войти</a>
+    <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
+  </nav>
+
+  <div class="terminal-page" id="termPage" style="display:none;">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <div class="terminal-title">H-ARCHIVES TERMINAL v2.1 &mdash; УРОВЕНЬ ДОПУСКА: <span id="termClearance">ГОСТЬ</span></div>
+      </div>
+      <div class="terminal-body" id="termBody">
+        <div class="term-welcome">
+========================================
+  H-ARCHIVES TERMINAL v2.1
+  ОРГАНИЗАЦИЯ Н — СЕКРЕТНЫЙ АРХИВ
+========================================
+        </div>
+        <div class="terminal-line" style="color:#666;">Добро пожаловать в терминал доступа.</div>
+        <div class="terminal-line" style="color:#666;">Введите <span style="color:var(--accent)">help</span> для списка команд.</div>
+        <div class="terminal-line">&nbsp;</div>
+      </div>
+      <div class="terminal-prompt">
+        <span class="terminal-prompt-symbol">H://&gt;</span>
+        <input type="text" class="terminal-input" id="termInput" placeholder="Введите команду..." autocomplete="off" autofocus>
+      </div>
+    </div>
+    <a href="index.html" class="back-link">&larr; Вернуться на главную</a>
+  </div>
+
+  <script type="module">
+    import { initApp, showToast, formatDate, getClearanceBadge, getCurrentProfile } from "./js/app.js";
+    import { logout } from "./js/auth.js";
+    import { searchArchive, getStats, getItems } from "./js/archive.js";
+    import { initNoise, initGlitch, initCRTFlicker } from "./js/effects.js";
+
+    initNoise("noise");
+    initGlitch();
+    initCRTFlicker();
+
+    // Connection animation
+    const connOverlay = document.getElementById("connOverlay");
+    const connBar = document.getElementById("connBar");
+    const connStatus = document.getElementById("connStatus");
+    const header = document.getElementById("header");
+    const termPage = document.getElementById("termPage");
+
+    const connMessages = [
+      "ПОДКЛЮЧЕНИЕ К СЕРВЕРУ...",
+      "ВЕРИФИКАЦИЯ ПРОТОКОЛА...",
+      "ЗАГРУЗКА МОДУЛЕЙ БЕЗОПАСНОСТИ...",
+      "ПРОВЕРКА УРОВНЯ ДОПУСКА...",
+      "ИНИЦИАЛИЗАЦИЯ ТЕРМИНАЛА...",
+      "ДОСТУП РАЗРЕШЁН"
+    ];
+
+    let connProgress = 0;
+    const connInterval = setInterval(() => {
+      connProgress += 2 + Math.random() * 3;
+      if (connProgress > 100) connProgress = 100;
+      connBar.style.width = connProgress + "%";
+
+      const msgIdx = Math.min(Math.floor(connProgress / 20), connMessages.length - 1);
+      connStatus.textContent = connMessages[msgIdx];
+
+      if (connProgress >= 100) {
+        clearInterval(connInterval);
+        setTimeout(() => {
+          connOverlay.classList.add("done");
+          header.style.display = "";
+          termPage.style.display = "";
+          setTimeout(() => connOverlay.remove(), 500);
+          document.getElementById("termInput").focus();
+        }, 600);
+      }
+    }, 80);
+
+    initApp();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+    document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+
+    // Update clearance display
+    document.addEventListener("authChanged", (e) => {
+      const { profile } = e.detail;
+      if (profile) {
+        const levels = { 1: "O-1", 2: "O-2", 3: "S-3", 4: "SS-4", 5: "OV-5" };
+        document.getElementById("termClearance").textContent = levels[profile.clearanceLevel] || "O-1";
+      }
+    });
+
+    const termBody = document.getElementById("termBody");
+    const termInput = document.getElementById("termInput");
+    const cmdHistory = [];
+    let historyIdx = -1;
+
+    function addLine(text, color) {
+      const line = document.createElement("div");
+      line.className = "terminal-line";
+      if (color) line.style.color = color;
+      line.innerHTML = text;
+      termBody.appendChild(line);
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+
+    function addLines(lines) {
+      lines.forEach(l => addLine(l));
+    }
+
+    const COMMANDS = {
+      help: () => {
+        addLine('<div class="term-help-grid">' +
+          '<span class="cmd">help</span><span class="desc">Список команд</span>' +
+          '<span class="cmd">search &lt;q&gt;</span><span class="desc">Поиск по архиву</span>' +
+          '<span class="cmd">stats</span><span class="desc">Статистика архива</span>' +
+          '<span class="cmd">list &lt;раздел&gt;</span><span class="desc">Список записей раздела</span>' +
+          '<span class="cmd">goto &lt;раздел&gt;</span><span class="desc">Перейти к разделу</span>' +
+          '<span class="cmd">about</span><span class="desc">Об организации Н</span>' +
+          '<span class="cmd">whoami</span><span class="desc">Текущий пользователь</span>' +
+          '<span class="cmd">clear</span><span class="desc">Очистить терминал</span>' +
+          '<span class="cmd">date</span><span class="desc">Текущая дата</span>' +
+          '<span class="cmd">exit</span><span class="desc">Выход на главную</span>' +
+          '</div>');
+      },
+
+      about: () => {
+        addLines([
+          '<span style="color:var(--accent);font-weight:700;">ОРГАНИЗАЦИЯ Н</span>',
+          'Секретная структура, занимающаяся изучением',
+          'аномальных явлений и неопознанных объектов.',
+          'Основана в 2020 году. Штаб-квартира засекречена.',
+          'Архив содержит рассекреченные материалы',
+          'за период 2020–2025 гг.',
+          '---',
+          'H ARCHIVES v2.1 — Терминал доступа'
+        ]);
+      },
+
+      clear: () => { termBody.innerHTML = ""; },
+
+      date: () => {
+        const now = new Date();
+        addLine(now.toLocaleString("ru-RU", { dateStyle: "full", timeStyle: "medium" }));
+      },
+
+      whoami: () => {
+        const profile = getCurrentProfile();
+        if (profile) {
+          addLines([
+            `Пользователь: ${profile.displayName || "Неизвестный"}`,
+            `Email: ${profile.email}`,
+            `Роль: ${profile.role || "guest"}`,
+            `Уровень допуска: ${profile.clearanceLevel || 1}`
+          ]);
+        } else {
+          addLine("Не авторизован. Уровень допуска: ГОСТЬ (1)");
+        }
+      },
+
+      exit: () => { window.location.href = "index.html"; },
+
+      stats: async () => {
+        addLine("Загрузка статистики...", "#666");
+        try {
+          const stats = await getStats();
+          const total = Object.values(stats).reduce((a, b) => a + b, 0);
+          addLine(`<span style="color:var(--accent)">Всего объектов: ${total}</span>`);
+          Object.entries(stats).forEach(([k, v]) => {
+            addLine(`  ${k}: ${v}`);
+          });
+        } catch {
+          addLine('<span class="t-err">[ERR]</span> Не удалось загрузить статистику');
+        }
+      },
+
+      search: async (args) => {
+        if (!args) { addLine("Использование: search <запрос>"); return; }
+        addLine(`Поиск: "${args}"...`, "#666");
+        try {
+          const results = await searchArchive(args);
+          if (!results.length) { addLine("Ничего не найдено.", "#ff9800"); return; }
+          addLine(`<span style="color:var(--green)">Найдено: ${results.length}</span>`);
+          results.slice(0, 10).forEach(r => {
+            addLine(`  <span style="color:var(--accent)">[${r.type}]</span> ${r.code || "---"} — ${r.title || "Без названия"}`);
+          });
+          if (results.length > 10) addLine(`  ... и ещё ${results.length - 10}`);
+        } catch {
+          addLine('<span class="t-err">[ERR]</span> Ошибка поиска');
+        }
+      },
+
+      list: async (args) => {
+        const sections = ["documents", "photos", "dossiers", "anomalies", "incidents", "operations", "personnel", "timeline"];
+        const ruMap = {
+          "документы": "documents", "фото": "photos", "досье": "dossiers",
+          "аномалии": "anomalies", "инциденты": "incidents", "операции": "operations",
+          "персонал": "personnel", "хронология": "timeline"
+        };
+        const type = ruMap[args?.toLowerCase()] || args?.toLowerCase();
+        if (!type || !sections.includes(type)) {
+          addLine("Использование: list <раздел>");
+          addLine("Разделы: " + sections.join(", "));
+          return;
+        }
+        addLine(`Загрузка ${type}...`, "#666");
+        try {
+          const items = await getItems(type, { limit: 10 });
+          if (!items.length) { addLine("Записей нет."); return; }
+          items.forEach(i => {
+            addLine(`  ${i.code || "---"} | ${i.title || "Без названия"} | ${i.status || "active"}`);
+          });
+        } catch {
+          addLine('<span class="t-err">[ERR]</span> Не удалось загрузить данные');
+        }
+      },
+
+      goto: (args) => {
+        const pages = {
+          "архив": "archive.html", "документы": "documents.html",
+          "фото": "photos.html", "досье": "dossiers.html",
+          "аномалии": "anomalies.html", "инциденты": "incidents.html",
+          "операции": "operations.html", "персонал": "personnel.html",
+          "хронология": "timeline.html", "поиск": "search.html",
+          "админ": "admin.html", "логин": "login.html"
+        };
+        const page = pages[args?.toLowerCase()];
+        if (page) {
+          addLine(`Переход: ${args}...`, "var(--green)");
+          setTimeout(() => { window.location.href = page; }, 500);
+        } else {
+          addLine("Раздел не найден: " + args);
+          addLine("Доступные: " + Object.keys(pages).join(", "));
+        }
+      }
+    };
+
+    termInput.addEventListener("keydown", async (e) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (historyIdx < cmdHistory.length - 1) {
+          historyIdx++;
+          termInput.value = cmdHistory[cmdHistory.length - 1 - historyIdx];
+        }
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (historyIdx > 0) {
+          historyIdx--;
+          termInput.value = cmdHistory[cmdHistory.length - 1 - historyIdx];
+        } else {
+          historyIdx = -1;
+          termInput.value = "";
+        }
+        return;
+      }
+      if (e.key !== "Enter") return;
+      const val = termInput.value.trim();
+      if (!val) return;
+      termInput.value = "";
+      historyIdx = -1;
+      cmdHistory.push(val);
+
+      addLine(`<span style="color:var(--accent)">H://&gt;</span> ${val}`);
+
+      const [cmd, ...rest] = val.split(" ");
+      const args = rest.join(" ");
+      const handler = COMMANDS[cmd.toLowerCase()];
+
+      if (handler) {
+        await handler(args);
+      } else {
+        addLine(`<span class="t-err">[ERR]</span> Неизвестная команда: ${cmd}`);
+        addLine('Введите <span style="color:var(--accent)">help</span> для списка команд.');
+      }
+    });
+  </script>
+</body>
+</html>

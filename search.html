@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H ARCHIVES - Поиск по архиву</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <style>
+    .search-hero {
+      text-align: center;
+      padding: 40px 0 20px;
+    }
+    .search-hero h1 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .search-box {
+      display: flex;
+      gap: 10px;
+      max-width: 600px;
+      margin: 24px auto;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 14px 18px;
+      font-size: 1rem;
+    }
+    .result-count {
+      color: var(--faint);
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .result-item {
+      display: flex;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .result-item:hover {
+      border-color: var(--accent-dim);
+      transform: translateX(4px);
+    }
+    .result-type-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(207,17,23,0.08);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .result-body { flex: 1; min-width: 0; }
+    .result-body .r-title { font-weight: 700; margin-bottom: 4px; }
+    .result-body .r-code { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); }
+    .result-body .r-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .result-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="noise"></canvas>
+  <div class="overlay scanlines"></div>
+  <div class="overlay vignette"></div>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><div class="brand-mark">H</div><div><div class="brand-title">H ARCHIVES</div><div class="brand-subtitle">СЕКРЕТНЫЙ АРХИВ</div></div></a>
+    <nav class="nav">
+      <a href="archive.html">Архив</a>
+      <a href="documents.html">Документы</a>
+      <a href="dossiers.html">Досье</a>
+      <a href="anomalies.html">Аномалии</a>
+      <a href="terminal.html">Терминал</a>
+      <a href="search.html" class="active">Поиск</a>
+      <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+      <a href="profile.html" data-auth="only" class="hidden nav-btn">Профиль</a>
+      <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
+      <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
+    </nav>
+    <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="archive.html">Архив</a><a href="documents.html">Документы</a><a href="photos.html">Фотоархив</a>
+    <a href="dossiers.html">Досье</a><a href="anomalies.html">Аномалии</a><a href="incidents.html">Инциденты</a>
+    <a href="operations.html">Операции</a><a href="personnel.html">Персонал</a><a href="timeline.html">Хронология</a>
+    <a href="search.html">Поиск</a>
+    <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+    <a href="profile.html" data-auth="only" class="hidden">Профиль</a>
+    <a href="login.html" data-auth="login">Войти</a>
+    <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
+  </nav>
+
+  <main class="page-wrap">
+    <div class="search-hero">
+      <h1>Поиск по архиву</h1>
+      <p style="color:var(--muted);">Полнотекстовый поиск по всем разделам H Archives</p>
+      <div class="search-box">
+        <input type="text" class="form-input" id="searchInput" placeholder="Введите запрос..." autofocus>
+        <button class="btn btn-primary" id="searchBtn">Найти</button>
+      </div>
+    </div>
+
+    <div id="resultCount" class="result-count"></div>
+    <div id="results"></div>
+  </main>
+
+  <footer class="site-footer"><p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н</p></footer>
+
+  <script type="module">
+    import { initApp, showToast, formatDate, getClearanceBadge, getStatusBadge } from "./js/app.js";
+    import { logout } from "./js/auth.js";
+    import { searchArchive } from "./js/archive.js";
+
+    initApp();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+    document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+
+    const typeIcons = {
+      documents: "&#128196;",
+      photos: "&#128247;",
+      dossiers: "&#128451;",
+      anomalies: "&#9888;",
+      incidents: "&#128680;",
+      operations: "&#127919;",
+      personnel: "&#128100;",
+      timeline: "&#128197;"
+    };
+
+    const typePages = {
+      documents: "documents.html",
+      photos: "photos.html",
+      dossiers: "dossiers.html",
+      anomalies: "anomalies.html",
+      incidents: "incidents.html",
+      operations: "operations.html",
+      personnel: "personnel.html",
+      timeline: "timeline.html"
+    };
+
+    async function doSearch() {
+      const q = document.getElementById("searchInput").value.trim();
+      if (!q) return;
+      const results = document.getElementById("results");
+      const countEl = document.getElementById("resultCount");
+      results.innerHTML = '<div class="loading-spinner"></div>';
+
+      try {
+        const items = await searchArchive(q);
+        countEl.textContent = `Найдено результатов: ${items.length}`;
+
+        if (!items.length) {
+          results.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>Ничего не найдено по запросу: ' + q + '</p></div>';
+          return;
+        }
+
+        results.innerHTML = items.map(i => `
+          <div class="result-item" onclick="window.location.href='${typePages[i.type] || 'archive.html'}'">
+            <div class="result-type-badge">${typeIcons[i.type] || "&#128196;"}</div>
+            <div class="result-body">
+              <div class="r-code">${i.code || "---"} &bull; ${i.type}</div>
+              <div class="r-title">${i.title || "Без названия"}</div>
+              <div class="r-desc">${i.description || i.body || ""}</div>
+            </div>
+            <div class="result-meta">
+              ${getClearanceBadge(i.clearanceLevel || 1)}
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        results.innerHTML = '<div class="empty-state"><p>Ошибка поиска. Проверьте подключение.</p></div>';
+        countEl.textContent = "";
+      }
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", doSearch);
+    document.getElementById("searchInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doSearch();
+    });
+  </script>
+</body>
+</html>
