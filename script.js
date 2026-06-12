@@ -17,9 +17,22 @@ const state = {
 };
 
 const demoOrg = {
-  username: 'SEO_IZ',
-  password: 'ARCHIVE-77',
+  usernameHash: '0fcb1527829b30c8c8c0c023c9d5a2ff9942c027e256e68653ee6f87025e7a45',
+  passwordHash: 'ff357ea9eb72156ed4f2569796c0f64b0e14f45b8a81ae2d68176ab7bd5b1d53',
 };
+
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
 
 const categories = {
   dossier: 'DOSSIER',
@@ -194,10 +207,10 @@ function renderFiles() {
   container.innerHTML = state.files.map((file) => `
     <div class="file-item">
       <div>
-        <strong>${file.name}</strong>
-        <span>${file.kind} • ${file.size}</span>
+        <strong>${escapeHtml(file.name)}</strong>
+        <span>${escapeHtml(file.kind)} • ${escapeHtml(file.size)}</span>
       </div>
-      <div class="badge">${file.tag}</div>
+      <div class="badge">${escapeHtml(file.tag)}</div>
     </div>
   `).join('');
 }
@@ -270,11 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('Гостьовий акаунт створено (демо-режим).');
   });
 
-  el('orgLogin').addEventListener('submit', (e) => {
+  el('orgLogin').addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = el('orgUser').value.trim();
     const pass = el('orgPass').value;
-    if (user === demoOrg.username && pass === demoOrg.password) {
+    const userHash = await sha256(user);
+    const passHash = await sha256(pass);
+    if (userHash === demoOrg.usernameHash && passHash === demoOrg.passwordHash) {
       setLoggedIn(true, 'організатор');
       alert('Доступ організатора активовано.');
     } else {
