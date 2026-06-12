@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H ARCHIVES - Профиль</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <style>
+    .profile-page {
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    .profile-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      background: var(--bg3);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 16px;
+      font-size: 2.5rem;
+      color: var(--accent);
+      overflow: hidden;
+    }
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+    .profile-email {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    .profile-badges {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .p-stat {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .p-stat-num {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+    .p-stat-label {
+      font-size: 0.75rem;
+      color: var(--faint);
+    }
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .not-logged-in {
+      text-align: center;
+      padding: 60px 20px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="noise"></canvas>
+  <div class="overlay scanlines"></div>
+  <div class="overlay vignette"></div>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><div class="brand-mark">H</div><div><div class="brand-title">H ARCHIVES</div><div class="brand-subtitle">СЕКРЕТНЫЙ АРХИВ</div></div></a>
+    <nav class="nav">
+      <a href="archive.html">Архив</a>
+      <a href="documents.html">Документы</a>
+      <a href="dossiers.html">Досье</a>
+      <a href="anomalies.html">Аномалии</a>
+      <a href="terminal.html">Терминал</a>
+      <a href="search.html">Поиск</a>
+      <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+      <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
+      <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
+    </nav>
+    <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="archive.html">Архив</a><a href="documents.html">Документы</a><a href="dossiers.html">Досье</a>
+    <a href="anomalies.html">Аномалии</a><a href="terminal.html">Терминал</a><a href="search.html">Поиск</a>
+    <a href="login.html" data-auth="login">Войти</a>
+    <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
+  </nav>
+
+  <main class="page-wrap">
+    <div class="not-logged-in" id="notLoggedIn">
+      <h2 style="color:var(--accent);margin-bottom:8px;">Авторизация необходима</h2>
+      <p style="color:var(--muted);margin-bottom:20px;">Войдите для просмотра профиля</p>
+      <a href="login.html" class="btn btn-primary">Войти</a>
+    </div>
+
+    <div class="profile-page hidden" id="profileSection">
+      <div class="profile-card">
+        <div class="profile-avatar" id="avatar">H</div>
+        <div class="profile-name" id="profileName">---</div>
+        <div class="profile-email" id="profileEmail">---</div>
+        <div class="profile-badges" id="profileBadges"></div>
+        <div class="profile-stats">
+          <div class="p-stat"><div class="p-stat-num" id="pClearance">1</div><div class="p-stat-label">Уровень допуска</div></div>
+          <div class="p-stat"><div class="p-stat-num" id="pRole">Гость</div><div class="p-stat-label">Роль</div></div>
+          <div class="p-stat"><div class="p-stat-num" id="pJoined">---</div><div class="p-stat-label">Регистрация</div></div>
+        </div>
+        <div class="profile-actions">
+          <a href="archive.html" class="btn btn-secondary btn-sm">Архив</a>
+          <a href="terminal.html" class="btn btn-secondary btn-sm">Терминал</a>
+          <button class="btn btn-danger btn-sm" id="profileLogout">Выйти</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer"><p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н</p></footer>
+
+  <script type="module">
+    import { initApp, showToast, formatDate, getClearanceBadge } from "./js/app.js";
+    import { logout } from "./js/auth.js";
+
+    initApp();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
+    document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
+    document.getElementById("profileLogout")?.addEventListener("click", async () => { await logout(); window.location.href = "index.html"; });
+
+    document.addEventListener("authChanged", (e) => {
+      const { profile, user, loggedIn } = e.detail;
+      if (loggedIn && profile) {
+        document.getElementById("notLoggedIn").classList.add("hidden");
+        document.getElementById("profileSection").classList.remove("hidden");
+        document.getElementById("profileName").textContent = profile.displayName || "Оператор";
+        document.getElementById("profileEmail").textContent = profile.email;
+        document.getElementById("pClearance").textContent = profile.clearanceLevel || 1;
+        document.getElementById("pRole").textContent = profile.role === "organizer" ? "Организатор" : "Гость";
+        document.getElementById("pJoined").textContent = formatDate(profile.createdAt);
+        document.getElementById("profileBadges").innerHTML = getClearanceBadge(profile.clearanceLevel || 1);
+
+        const avatarEl = document.getElementById("avatar");
+        if (user.photoURL) {
+          avatarEl.innerHTML = `<img src="${user.photoURL}" alt="">`;
+        } else {
+          avatarEl.textContent = (profile.displayName || "H").charAt(0).toUpperCase();
+        }
+      } else {
+        document.getElementById("notLoggedIn").classList.remove("hidden");
+        document.getElementById("profileSection").classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

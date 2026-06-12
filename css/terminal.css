@@ -1,0 +1,179 @@
+/* Terminal-specific styles */
+.terminal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.terminal-window {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(207, 17, 23, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(20, 20, 24, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 6px;
+}
+.terminal-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.terminal-dots .dot-r { background: #ff5f56; }
+.terminal-dots .dot-y { background: #ffbd2e; }
+.terminal-dots .dot-g { background: #27c93f; }
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--faint);
+  letter-spacing: 0.1em;
+  font-family: var(--font-mono);
+}
+
+.terminal-body {
+  padding: 20px;
+  min-height: 400px;
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #aaa;
+}
+
+.terminal-body::-webkit-scrollbar { width: 6px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(207, 17, 23, 0.3); border-radius: 3px; }
+
+.terminal-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(10, 10, 14, 0.95);
+}
+
+.terminal-prompt-symbol {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.terminal-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+  caret-color: var(--accent);
+}
+
+/* Auth terminal */
+.auth-terminal {
+  max-width: 440px;
+  width: 100%;
+}
+
+.auth-terminal .terminal-body {
+  min-height: 200px;
+  max-height: none;
+  padding: 24px;
+}
+
+.auth-form {
+  margin-top: 16px;
+}
+
+.auth-form .form-group {
+  margin-bottom: 12px;
+}
+
+.auth-form .form-input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.auth-form .form-input:focus {
+  border-color: var(--accent);
+}
+
+.terminal-result {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.terminal-result:last-child {
+  border-bottom: none;
+}
+
+.terminal-result .result-code {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.terminal-result .result-title {
+  color: var(--text);
+  margin-left: 8px;
+}
+
+.terminal-result .result-type {
+  color: var(--faint);
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+/* Connection animation */
+.connection-screen {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.connection-screen h2 {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  letter-spacing: 0.2em;
+  margin-bottom: 16px;
+}
+
+.connection-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.connection-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+@keyframes connection-text {
+  0%, 33% { content: "ПОДКЛЮЧЕНИЕ."; }
+  34%, 66% { content: "ПОДКЛЮЧЕНИЕ.."; }
+  67%, 100% { content: "ПОДКЛЮЧЕНИЕ..."; }
+}

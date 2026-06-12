@@ -1,0 +1,259 @@
+/* Glitch text effect */
+.glitch {
+  position: relative;
+  animation: glitch-skew 4s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.glitch::before {
+  color: #ff0000;
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+  transform: translate(-2px, -1px);
+  opacity: 0.7;
+}
+
+.glitch::after {
+  color: #00ffff;
+  animation: glitch-2 2s infinite linear alternate-reverse;
+  clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+  transform: translate(2px, 1px);
+  opacity: 0.7;
+}
+
+@keyframes glitch-1 {
+  0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
+  10% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); }
+  20% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+  30% { clip-path: polygon(0 1%, 100% 1%, 100% 2%, 0 2%); }
+  40% { clip-path: polygon(0 33%, 100% 33%, 100% 33%, 0 33%); }
+  50% { clip-path: polygon(0 44%, 100% 44%, 100% 44%, 0 44%); }
+  60% { clip-path: polygon(0 50%, 100% 50%, 100% 20%, 0 20%); }
+  70% { clip-path: polygon(0 70%, 100% 70%, 100% 70%, 0 70%); }
+  80% { clip-path: polygon(0 80%, 100% 80%, 100% 80%, 0 80%); }
+  90% { clip-path: polygon(0 50%, 100% 50%, 100% 55%, 0 55%); }
+  100% { clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%); }
+}
+
+@keyframes glitch-2 {
+  0% { clip-path: polygon(0 25%, 100% 25%, 100% 30%, 0 30%); }
+  15% { clip-path: polygon(0 3%, 100% 3%, 100% 3%, 0 3%); }
+  22% { clip-path: polygon(0 5%, 100% 5%, 100% 20%, 0 20%); }
+  31% { clip-path: polygon(0 20%, 100% 20%, 100% 20%, 0 20%); }
+  45% { clip-path: polygon(0 40%, 100% 40%, 100% 40%, 0 40%); }
+  51% { clip-path: polygon(0 52%, 100% 52%, 100% 59%, 0 59%); }
+  63% { clip-path: polygon(0 60%, 100% 60%, 100% 60%, 0 60%); }
+  76% { clip-path: polygon(0 75%, 100% 75%, 100% 75%, 0 75%); }
+  87% { clip-path: polygon(0 65%, 100% 65%, 100% 40%, 0 40%); }
+  100% { clip-path: polygon(0 14%, 100% 14%, 100% 33%, 0 33%); }
+}
+
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(0deg); }
+  21% { transform: skew(-1deg); }
+  22% { transform: skew(0deg); }
+  40% { transform: skew(0deg); }
+  41% { transform: skew(0.5deg); }
+  42% { transform: skew(0deg); }
+  60% { transform: skew(0deg); }
+  100% { transform: skew(0deg); }
+}
+
+/* VHS distortion */
+@keyframes vhs-tracking {
+  0% { transform: translateX(0); }
+  2% { transform: translateX(-2px); }
+  4% { transform: translateX(0); }
+  20% { transform: translateX(0); }
+  22% { transform: translateX(1px); }
+  24% { transform: translateX(0); }
+  50% { transform: translateX(0); }
+  52% { transform: translateX(-1px); }
+  54% { transform: translateX(0); }
+  80% { transform: translateX(0); }
+  82% { transform: translateX(2px); }
+  84% { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+
+.vhs-effect { animation: vhs-tracking 8s infinite; }
+
+/* Stamp effects */
+@keyframes stamp-appear {
+  0% { transform: rotate(-14deg) scale(3); opacity: 0; }
+  60% { transform: rotate(-14deg) scale(1.05); opacity: 0.7; }
+  100% { transform: rotate(-14deg) scale(1); opacity: 0.6; }
+}
+
+.stamp-animate { animation: stamp-appear 0.6s ease-out forwards; }
+
+/* Terminal cursor */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: var(--accent);
+  animation: blink-cursor 1s infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+/* Terminal line animation */
+@keyframes fade-in-line {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.terminal-line {
+  animation: fade-in-line 0.15s ease-out;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #aaa;
+}
+
+.t-ok { color: #4caf50; font-weight: 700; }
+.t-warn { color: #ff9800; font-weight: 700; }
+.t-err { color: #f44336; font-weight: 700; }
+
+/* Pulse */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(207, 17, 23, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(207, 17, 23, 0); }
+}
+
+.pulse { animation: pulse-red 2s infinite; }
+
+/* Fade animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-up { animation: fadeUp 0.5s ease-out both; }
+.fade-in { animation: fadeIn 0.4s ease-out both; }
+
+/* Scanline sweep */
+@keyframes scanline-sweep {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+.scanline-bar {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(207, 17, 23, 0.1);
+  z-index: 9998;
+  pointer-events: none;
+  animation: scanline-sweep 6s linear infinite;
+}
+
+/* Connection animation */
+@keyframes connection-pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+  animation: connection-pulse 1.5s infinite;
+}
+
+/* Boot screen */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  transition: opacity 0.5s;
+}
+
+.boot-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-logo {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--accent);
+  font-family: var(--font-display);
+  margin-bottom: 20px;
+  text-shadow: 0 0 40px rgba(207, 17, 23, 0.5);
+}
+
+.boot-text {
+  color: #666;
+  font-size: 0.85rem;
+  max-width: 500px;
+  text-align: left;
+  padding: 0 20px;
+}
+
+/* Classified watermark */
+.classified-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 8rem;
+  font-weight: 900;
+  color: rgba(207, 17, 23, 0.03);
+  letter-spacing: 0.2em;
+  pointer-events: none;
+  z-index: 1;
+  white-space: nowrap;
+  font-family: var(--font-display);
+}
+
+/* Access denied / restricted overlays */
+.access-restricted {
+  position: relative;
+}
+.access-restricted::after {
+  content: "ДОСТУП ОГРАНИЧЕН";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  font-size: 0.9rem;
+  border-radius: inherit;
+  cursor: not-allowed;
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H ARCHIVES - Документы</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/effects.css">
+</head>
+<body>
+  <canvas id="noise"></canvas>
+  <div class="overlay scanlines"></div>
+  <div class="overlay vignette"></div>
+  <div class="scanline-bar"></div>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><div class="brand-mark">H</div><div><div class="brand-title">H ARCHIVES</div><div class="brand-subtitle">СЕКРЕТНЫЙ АРХИВ</div></div></a>
+    <nav class="nav">
+      <a href="archive.html">Архив</a>
+      <a href="documents.html" class="active">Документы</a>
+      <a href="dossiers.html">Досье</a>
+      <a href="anomalies.html">Аномалии</a>
+      <a href="terminal.html">Терминал</a>
+      <a href="search.html">Поиск</a>
+      <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+      <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
+      <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
+    </nav>
+    <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="archive.html">Архив</a><a href="documents.html">Документы</a><a href="photos.html">Фотоархив</a>
+    <a href="dossiers.html">Досье</a><a href="anomalies.html">Аномалии</a><a href="incidents.html">Инциденты</a>
+    <a href="operations.html">Операции</a><a href="personnel.html">Персонал</a><a href="timeline.html">Хронология</a>
+    <a href="login.html" data-auth="login">Войти</a>
+    <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
+  </nav>
+
+  <main class="page-wrap">
+    <div class="section-head">
+      <div>
+        <h1 class="section-title">&#128196; Документы</h1>
+        <p class="section-subtitle">Приказы, отчёты, записки и служебная переписка</p>
+      </div>
+      <button class="btn btn-primary btn-sm" data-auth="admin" id="createBtn" class="hidden">+ Создать</button>
+    </div>
+
+    <div class="filters-bar">
+      <input type="text" class="form-input" id="searchInput" placeholder="Поиск документов...">
+      <select class="form-select" id="statusFilter">
+        <option value="">Все статусы</option>
+        <option value="active">Активный</option>
+        <option value="archived">В архиве</option>
+        <option value="classified">Засекречен</option>
+        <option value="declassified">Рассекречен</option>
+      </select>
+    </div>
+
+    <div class="grid-3" id="itemsGrid"><div class="loading-spinner"></div></div>
+    <div id="modalContainer"></div>
+  </main>
+
+  <footer class="site-footer"><p>H ARCHIVES &copy; ОРГАНИЗАЦИЯ Н</p></footer>
+
+  <script type="module">
+    import { initApp, showToast, formatDate, getClearanceBadge, getStatusBadge, getCurrentProfile } from "./js/app.js";
+    import { logout } from "./js/auth.js";
+    import { getItems, getItem, createItem, uploadFile, CLEARANCE_LEVELS, STATUSES } from "./js/archive.js";
+
+    const TYPE = "documents";
+    initApp();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+    document.getElementById("mobileLogoutBtn")?.addEventListener("click", async (e) => { e.preventDefault(); await logout(); showToast("Сессия завершена"); });
+
+    let items = [];
+    const grid = document.getElementById("itemsGrid");
+    const modal = document.getElementById("modalContainer");
+
+    async function load() {
+      grid.innerHTML = '<div class="loading-spinner"></div>';
+      try { items = await getItems(TYPE); render(); } catch(e) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128450;</div><p>Не удалось загрузить документы</p></div>';
+      }
+    }
+
+    function render() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const st = document.getElementById("statusFilter").value;
+      let f = items;
+      if (q) f = f.filter(i => [i.title,i.description,i.body,i.code].filter(Boolean).join(" ").toLowerCase().includes(q));
+      if (st) f = f.filter(i => i.status === st);
+      if (!f.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">&#128450;</div><p>Документы не найдены</p></div>'; return; }
+      grid.innerHTML = f.map(i => `
+        <div class="archive-card fade-up" data-id="${i.id}">
+          <div class="card-header"><span class="card-code">${i.code||"---"}</span>${getClearanceBadge(i.clearanceLevel||1)}</div>
+          <div class="card-title">${i.title||"Без названия"}</div>
+          <div class="card-desc">${i.description||i.body||""}</div>
+          <div class="card-footer"><span>${formatDate(i.createdAt)}</span>${getStatusBadge(i.status||"active")}</div>
+          ${(i.clearanceLevel||1)>=3?'<div class="stamp" style="right:-10px;bottom:14px;">СЕКРЕТНО</div>':""}
+        </div>`).join("");
+      grid.querySelectorAll(".archive-card").forEach(c => c.addEventListener("click", () => openDetail(c.dataset.id)));
+    }
+
+    function openDetail(id) {
+      const i = items.find(x => x.id === id);
+      if (!i) return;
+      modal.innerHTML = `<div class="modal-overlay active" onclick="if(event.target===this)this.remove()"><div class="modal-card">
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <span style="font-family:var(--font-mono);color:var(--accent);letter-spacing:0.1em;">${i.code||"---"}</span>
+          ${getClearanceBadge(i.clearanceLevel||1)} ${getStatusBadge(i.status||"active")}
+        </div>
+        <h2 style="font-family:var(--font-display);font-size:1.6rem;margin:10px 0;">${i.title||"Без названия"}</h2>
+        <div style="color:var(--muted);line-height:1.8;margin:16px 0;">${i.body||i.description||"Содержимое отсутствует."}</div>
+        ${i.imageUrl?`<img src="${i.imageUrl}" style="width:100%;border-radius:10px;margin:12px 0;">`:""}
+        <div style="display:flex;gap:16px;align-items:center;margin-top:16px;flex-wrap:wrap;">
+          <div class="stamp-circle">ОРГАНИЗАЦИЯ<br>Н</div>
+          <div><div style="font-size:0.8rem;color:var(--faint);">Дата: ${formatDate(i.createdAt)}</div></div>
+        </div>
+      </div></div>`;
+    }
+
+    document.getElementById("searchInput").addEventListener("input", render);
+    document.getElementById("statusFilter").addEventListener("change", render);
+
+    document.getElementById("createBtn")?.addEventListener("click", () => {
+      modal.innerHTML = `<div class="modal-overlay active" onclick="if(event.target===this)this.remove()"><div class="modal-card">
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+        <h2 style="font-family:var(--font-display);margin-bottom:16px;">Создать документ</h2>
+        <form id="createForm">
+          <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="f_title" required placeholder="Название документа"></div>
+          <div class="form-group"><label class="form-label">Описание</label><textarea class="form-textarea form-input" id="f_desc" placeholder="Краткое описание"></textarea></div>
+          <div class="form-group"><label class="form-label">Содержимое</label><textarea class="form-textarea form-input" id="f_body" placeholder="Текст документа" style="min-height:150px;"></textarea></div>
+          <div class="form-group"><label class="form-label">Уровень допуска</label><select class="form-select" id="f_cl">${Object.entries(CLEARANCE_LEVELS).map(([k,v])=>`<option value="${k}">${v.code} — ${v.name}</option>`).join("")}</select></div>
+          <div class="form-group"><label class="form-label">Статус</label><select class="form-select" id="f_st">${Object.entries(STATUSES).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join("")}</select></div>
+          <div class="form-group"><label class="form-label">Файл (PDF/изображение)</label><input type="file" class="form-input" id="f_file" accept=".pdf,image/*"></div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top:12px;">Создать</button>
+        </form>
+      </div></div>`;
+
+      document.getElementById("createForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const profile = getCurrentProfile();
+        if (!profile || (profile.role !== "organizer" && (profile.clearanceLevel||1) < 4)) {
+          showToast("Недостаточно прав", "error"); return;
+        }
+        try {
+          const data = {
+            title: document.getElementById("f_title").value,
+            description: document.getElementById("f_desc").value,
+            body: document.getElementById("f_body").value,
+            clearanceLevel: parseInt(document.getElementById("f_cl").value),
+            status: document.getElementById("f_st").value,
+          };
+          const file = document.getElementById("f_file").files[0];
+          if (file) { data.attachments = [await uploadFile(file, TYPE)]; }
+          await createItem(TYPE, data, profile.uid);
+          showToast("Документ создан", "success");
+          document.querySelector(".modal-overlay")?.remove();
+          load();
+        } catch(err) { showToast("Ошибка: " + err.message, "error"); }
+      });
+    });
+
+    load();
+  </script>
+</body>
+</html>
