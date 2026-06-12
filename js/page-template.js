@@ -25,6 +25,7 @@ function renderHeader(activePage) {
       <a href="terminal.html" ${activePage==='terminal'?'class="active"':''}>Терминал</a>
       <a href="search.html" ${activePage==='search'?'class="active"':''}>Поиск</a>
       <a href="admin.html" data-auth="admin" class="hidden${activePage==='admin'?' active':''}">Управление</a>
+      <a href="profile.html" data-auth="only" class="hidden nav-btn">Профиль</a>
       <a href="login.html" data-auth="login" class="nav-auth-btn">Войти</a>
       <a href="#" data-auth="logout" class="hidden nav-btn" id="logoutBtn">Выйти</a>
     </nav>
@@ -44,6 +45,7 @@ function renderHeader(activePage) {
     <a href="terminal.html">Терминал</a>
     <a href="search.html">Поиск</a>
     <a href="admin.html" data-auth="admin" class="hidden">Управление</a>
+    <a href="profile.html" data-auth="only" class="hidden">Профиль</a>
     <a href="login.html" data-auth="login">Войти</a>
     <a href="#" data-auth="logout" class="hidden" id="mobileLogoutBtn">Выйти</a>
   </nav>`;

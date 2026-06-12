@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
+  getAuth, browserLocalPersistence, setPersistence,
+  GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail,
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -28,6 +29,7 @@ let app, auth, db, storage;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
   db = getFirestore(app);
   storage = getStorage(app);
 } catch (e) {

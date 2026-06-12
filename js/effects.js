@@ -3,21 +3,26 @@ function initNoise(canvasId) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d", { alpha: true });
   let w = 0, h = 0;
+  const SCALE = 4;
+  let frame = 0;
 
   function resize() {
-    w = canvas.width = window.innerWidth * devicePixelRatio;
-    h = canvas.height = window.innerHeight * devicePixelRatio;
+    w = canvas.width = Math.ceil(window.innerWidth / SCALE);
+    h = canvas.height = Math.ceil(window.innerHeight / SCALE);
     canvas.style.width = window.innerWidth + "px";
     canvas.style.height = window.innerHeight + "px";
+    canvas.style.imageRendering = "pixelated";
   }
 
   function draw() {
+    frame++;
+    if (frame % 3 !== 0) { requestAnimationFrame(draw); return; }
     const imageData = ctx.createImageData(w, h);
-    const d = imageData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const v = Math.random() * 255;
-      d[i] = v; d[i + 1] = v; d[i + 2] = v;
-      d[i + 3] = Math.random() * 30;
+    const buf = new Uint32Array(imageData.data.buffer);
+    for (let i = 0, len = buf.length; i < len; i++) {
+      const v = (Math.random() * 255) | 0;
+      const a = (Math.random() * 25) | 0;
+      buf[i] = (a << 24) | (v << 16) | (v << 8) | v;
     }
     ctx.putImageData(imageData, 0, 0);
     requestAnimationFrame(draw);

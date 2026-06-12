@@ -1,4 +1,4 @@
-import { onAuthChange } from "./auth.js";
+import { onAuthChange, getLocalSession } from "./auth.js";
 import { initNoise, initGlitch, initCRTFlicker } from "./effects.js";
 
 let currentUser = null;
@@ -9,11 +9,23 @@ function initApp() {
   initGlitch();
   initCRTFlicker();
   initBurgerMenu();
-  updateNavAuth(null);
+
+  const cached = getLocalSession();
+  if (cached && cached.uid) {
+    updateNavAuth({ displayName: cached.displayName, role: cached.role, clearanceLevel: cached.clearanceLevel });
+  } else {
+    updateNavAuth(null);
+  }
 
   onAuthChange(({ user, profile, loggedIn }) => {
     currentUser = user;
     currentProfile = profile;
+    if (profile) {
+      const sess = getLocalSession() || {};
+      sess.role = profile.role;
+      sess.clearanceLevel = profile.clearanceLevel;
+      try { localStorage.setItem("h_archives_auth", JSON.stringify(sess)); } catch {}
+    }
     updateNavAuth(profile);
     document.dispatchEvent(new CustomEvent("authChanged", { detail: { user, profile, loggedIn } }));
   });
