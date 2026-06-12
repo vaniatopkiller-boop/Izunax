@@ -44,7 +44,13 @@ async function ensureUserProfile(user) {
       lastLogin: serverTimestamp()
     });
   } else {
-    await setDoc(ref, { lastLogin: serverTimestamp() }, { merge: true });
+    const updates = { lastLogin: serverTimestamp() };
+    const data = snap.data();
+    if (isAdmin(user.email) && data.role !== "organizer") {
+      updates.role = "organizer";
+      updates.clearanceLevel = 5;
+    }
+    await setDoc(ref, updates, { merge: true });
   }
   return (await getDoc(ref)).data();
 }

@@ -37,7 +37,8 @@ try {
 const ADMIN_EMAILS = ["vaniatopkiller@gmail.com"];
 
 function isAdmin(email) {
-  return ADMIN_EMAILS.includes(email);
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }
 
 export {
